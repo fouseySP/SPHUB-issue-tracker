@@ -731,8 +731,8 @@ function ensureIdentity() {
   $("#whoWrap").hidden = false;
 }
 
-$("#whoConfirm").addEventListener("click", () => {
-  const m = members.find(x => x.email === $("#whoSelect").value);
+document.getElementById("whoConfirm").addEventListener("click", () => {
+  const m = members.find(x => x.email === document.getElementById("whoSelect").value);
   if (!m) return;
   me = { name: m.name, email: m.email };
   try { localStorage.setItem("sphub-tracker-me", JSON.stringify(me)); } catch (e) {}
