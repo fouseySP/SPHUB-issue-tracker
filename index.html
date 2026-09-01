@@ -1,6 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
 <title>SPHUB Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root {
     --bg: #F5F7F5;
@@ -108,6 +113,44 @@
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .app { display: flex; flex-direction: column; height: 100vh; }
+  .app[hidden] { display: none; }
+
+  /* ---------- login ---------- */
+  .login-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 24px; background: var(--bg);
+  }
+  .login-wrap[hidden] { display: none; }
+  .login-card {
+    width: 100%; max-width: 360px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: var(--shadow-lift);
+    padding: 30px 28px 26px;
+  }
+  .login-card h1 {
+    margin: 0 0 2px;
+    font: 700 22px/1.2 "Archivo", system-ui, sans-serif; letter-spacing: -.01em;
+  }
+  .login-card .sub {
+    font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: 22px;
+  }
+  .login-card label {
+    display: block; margin: 0 0 5px;
+    font: 600 11px "Archivo", sans-serif; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .login-card input {
+    width: 100%; padding: 9px 12px; margin-bottom: 14px;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--bg);
+  }
+  .login-card .btn.primary { width: 100%; padding: 10px; margin-top: 4px; }
+  .login-err {
+    color: var(--crit); background: var(--crit-soft);
+    border-radius: 8px; padding: 8px 12px; font-size: 13px; margin-bottom: 12px;
+  }
+  .login-err[hidden] { display: none; }
+  .login-note { margin-top: 16px; font-size: 12px; color: var(--faint); text-align: center; }
 
   /* ---------- header ---------- */
   header {
@@ -136,7 +179,12 @@
   .conn { font-size: 11.5px; color: var(--faint); display: flex; align-items: center; gap: 6px; }
   .conn .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
   .conn.live .dot { background: var(--accent); }
-  .conn.local .dot { background: var(--high); }
+  .conn.err .dot { background: var(--crit); }
+  .btn-signout {
+    border: 1px solid var(--border); background: var(--surface-2); border-radius: 8px;
+    padding: 5px 12px; font-size: 12.5px; color: var(--muted);
+  }
+  .btn-signout:hover { color: var(--ink); }
 
   /* ---------- toolbar ---------- */
   .toolbar {
@@ -354,11 +402,28 @@
     background: var(--ink); color: var(--bg);
     padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 500;
     opacity: 0; pointer-events: none; transition: opacity .2s;
+    max-width: 90vw;
   }
   .toast.show { opacity: 1; }
 </style>
+</head>
+<body>
 
-<div class="app">
+<div class="login-wrap" id="loginWrap" hidden>
+  <form class="login-card" id="loginForm">
+    <h1>SPHUB Tracker</h1>
+    <div class="sub">SP Tech Team</div>
+    <div class="login-err" id="loginErr" hidden></div>
+    <label for="loginEmail">Email</label>
+    <input id="loginEmail" type="email" autocomplete="username" required>
+    <label for="loginPw">Password</label>
+    <input id="loginPw" type="password" autocomplete="current-password" required>
+    <button class="btn primary" id="loginBtn" type="submit">Sign in</button>
+    <p class="login-note">Team access only. Ask the SP tech team for credentials.</p>
+  </form>
+</div>
+
+<div class="app" id="app" hidden>
   <header>
     <div class="brand">
       <h1>SPHUB Tracker</h1>
@@ -366,6 +431,7 @@
     </div>
     <div class="stats" id="stats"></div>
     <div class="conn" id="conn"><span class="dot"></span><span id="connLabel">connecting…</span></div>
+    <button class="btn-signout" id="btnSignout">Sign out</button>
   </header>
 
   <div class="toolbar">
@@ -410,71 +476,171 @@
 <script>
 "use strict";
 
-/* ---------------- constants ---------------- */
-const STATUSES = [
-  { key: "backlog",    name: "Backlog",     dot: "var(--faint)" },
-  { key: "todo",       name: "To do",       dot: "var(--task)" },
-  { key: "inprogress", name: "In progress", dot: "var(--high)" },
-  { key: "inreview",   name: "In review",   dot: "var(--enh)" },
-  { key: "done",       name: "Done",        dot: "var(--accent)" },
-];
-const PRIORITIES = ["critical", "high", "medium", "low"];
-const PRIORITY_RANK = { critical: 0, high: 1, medium: 2, low: 3 };
-const TYPES = { bug: "Bug", enhancement: "Enhancement", task: "Task" };
+/* ---------------- supabase backend ---------------- */
+const SUPA_URL = "https://qqhayadsnchhawtbmsqe.supabase.co";
+const SUPA_KEY = "sb_publishable_m1-5gQlKXwNW4VsiAg4ang_6WsRWeiG";
+const SESSION_KEY = "sphub-tracker-session";
+const POLL_MS = 15000;
 
-/* ---------------- store (shared db with local fallback) ---------------- */
-let issues = [];          // [{id, ...fields}]
-let store = null;         // {save(id,data), remove(id)}
-let connEl = document.getElementById("conn");
+let session = null;
+try { session = JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); } catch (e) { session = null; }
 
-function setConn(mode) {
-  connEl.classList.remove("live", "local");
-  const label = document.getElementById("connLabel");
-  if (mode === "live")  { connEl.classList.add("live");  label.textContent = "team sync on"; }
-  if (mode === "local") { connEl.classList.add("local"); label.textContent = "local only — data stays in this browser"; }
+function saveSession(s) {
+  session = s;
+  try {
+    if (s) localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    else localStorage.removeItem(SESSION_KEY);
+  } catch (e) {}
 }
 
-const LS_KEY = "sphub-tracker-issues";
-
-function startLocalStore() {
-  let map = {};
-  try { map = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch (e) { map = {}; }
-  const flush = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(map)); } catch (e) {} };
-  store = {
-    save(id, data) { map[id] = data; flush(); syncIssues(map); return Promise.resolve(); },
-    remove(id) { delete map[id]; flush(); syncIssues(map); return Promise.resolve(); },
-  };
-  setConn("local");
-  syncIssues(map);
-}
-
-function syncIssues(map) {
-  issues = Object.entries(map).map(([id, d]) => Object.assign({ id }, d));
-  render();
-}
-
-async function initStore() {
-  let db = null;
-  if (window.claude && window.claude.use) {
-    try { db = await claude.use("db"); } catch (e) { db = null; }
+async function authRequest(grant, body) {
+  const res = await fetch(SUPA_URL + "/auth/v1/token?grant_type=" + grant, {
+    method: "POST",
+    headers: { "apikey": SUPA_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = data.error_description || data.msg || data.message || ("Sign-in failed (" + res.status + ")");
+    throw new Error(msg);
   }
-  if (!db) { startLocalStore(); return; }
-  const col = db.collection("issues");
-  store = {
-    save(id, data) { return col.doc(id).set(data); },
-    remove(id) { return col.doc(id).delete(); },
+  return {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: Date.now() + (data.expires_in || 3600) * 1000,
+    email: (data.user && data.user.email) || "",
   };
-  col.onSnapshot(
-    snap => {
-      issues = snap.docs.filter(d => d.exists).map(d => Object.assign({ id: d.id }, d.data()));
-      setConn("live");
-      render();
-    },
-    err => {
-      toast("Sync error (" + err.code + ") — falling back to local data");
-      startLocalStore();
-    }
-  );
+}
+
+async function ensureToken() {
+  if (!session) throw new Error("signed out");
+  if (Date.now() < session.expires_at - 60000) return session.access_token;
+  try {
+    const s = await authRequest("refresh_token", { refresh_token: session.refresh_token });
+    saveSession(s);
+    return s.access_token;
+  } catch (e) {
+    signOut();
+    throw new Error("Session expired — please sign in again");
+  }
+}
+
+async function api(path, opts) {
+  const token = await ensureToken();
+  opts = opts || {};
+  opts.headers = Object.assign({
+    "apikey": SUPA_KEY,
+    "Authorization": "Bearer " + token,
+    "Content-Type": "application/json",
+  }, opts.headers || {});
+  const res = await fetch(SUPA_URL + "/rest/v1/" + path, opts);
+  if (res.status === 401) { signOut(); throw new Error("Session expired — please sign in again"); }
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || ("Request failed (" + res.status + ")"));
+  }
+  if (res.status === 204 || (opts.headers.Prefer || "").includes("return=minimal")) return null;
+  return res.json();
+}
+
+const store = {
+  async loadAll() {
+    const rows = await api("issues?select=id,data&order=id.asc");
+    return rows.map(r => Object.assign({ id: r.id }, r.data));
+  },
+  save(id, data) {
+    return api("issues?on_conflict=id", {
+      method: "POST",
+      headers: { "Prefer": "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify([{ id, data, updated_at: new Date().toISOString() }]),
+    });
+  },
+  remove(id) {
+    return api("issues?id=eq." + encodeURIComponent(id), {
+      method: "DELETE",
+      headers: { "Prefer": "return=minimal" },
+    });
+  },
+};
+
+/* ---------------- auth flow ---------------- */
+function showLogin() {
+  document.getElementById("app").hidden = true;
+  document.getElementById("loginWrap").hidden = false;
+}
+function showApp() {
+  document.getElementById("loginWrap").hidden = true;
+  document.getElementById("app").hidden = false;
+}
+function signOut() {
+  saveSession(null);
+  stopPolling();
+  issues = [];
+  showLogin();
+}
+
+document.getElementById("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const btn = document.getElementById("loginBtn");
+  const errEl = document.getElementById("loginErr");
+  errEl.hidden = true;
+  btn.disabled = true;
+  btn.textContent = "Signing in…";
+  try {
+    const s = await authRequest("password", {
+      email: document.getElementById("loginEmail").value.trim(),
+      password: document.getElementById("loginPw").value,
+    });
+    saveSession(s);
+    enterApp();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.hidden = false;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Sign in";
+  }
+});
+
+document.getElementById("btnSignout").addEventListener("click", signOut);
+
+/* ---------------- sync ---------------- */
+let pollTimer = null;
+
+function setConn(mode, label) {
+  const el = document.getElementById("conn");
+  el.classList.remove("live", "err");
+  if (mode) el.classList.add(mode);
+  document.getElementById("connLabel").textContent = label;
+}
+
+async function refresh(showErrors) {
+  try {
+    issues = await store.loadAll();
+    setConn("live", "team sync on");
+    render();
+  } catch (err) {
+    setConn("err", "sync error");
+    if (showErrors) toast(err.message);
+  }
+}
+
+function startPolling() {
+  stopPolling();
+  pollTimer = setInterval(() => { if (!document.hidden) refresh(false); }, POLL_MS);
+}
+function stopPolling() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && session) refresh(false);
+});
+
+function enterApp() {
+  showApp();
+  setConn("", "loading…");
+  refresh(true);
+  startPolling();
 }
 
 /* ---------------- identity ---------------- */
@@ -487,6 +653,18 @@ function myName() {
   }
   return n || "Unknown";
 }
+
+/* ---------------- constants ---------------- */
+const STATUSES = [
+  { key: "backlog",    name: "Backlog",     dot: "var(--faint)" },
+  { key: "todo",       name: "To do",       dot: "var(--task)" },
+  { key: "inprogress", name: "In progress", dot: "var(--high)" },
+  { key: "inreview",   name: "In review",   dot: "var(--enh)" },
+  { key: "done",       name: "Done",        dot: "var(--accent)" },
+];
+const PRIORITIES = ["critical", "high", "medium", "low"];
+const PRIORITY_RANK = { critical: 0, high: 1, medium: 2, low: 3 };
+const TYPES = { bug: "Bug", enhancement: "Enhancement", task: "Task" };
 
 /* ---------------- helpers ---------------- */
 const $ = s => document.querySelector(s);
@@ -506,6 +684,8 @@ const fmtDateTime = ts => {
 };
 const initials = name => (name || "?").trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
 const isOverdue = it => it.dueDate && it.status !== "done" && it.dueDate < todayISO();
+
+let issues = [];
 
 function nextId() {
   let max = 0;
@@ -655,10 +835,12 @@ function wireBoard() {
 function moveIssue(id, status) {
   const it = issues.find(i => i.id === id);
   if (!it || it.status === status) return;
-  const data = Object.assign({}, it, { status, updatedAt: new Date().toISOString(), updatedBy: myName() });
+  it.status = status;
+  it.updatedAt = new Date().toISOString();
+  it.updatedBy = myName();
+  const data = Object.assign({}, it);
   delete data.id;
-  store.save(id, data).catch(err => toast("Save failed: " + (err.code || err.message)));
-  it.status = status; // optimistic
+  store.save(id, data).catch(err => toast("Save failed: " + err.message));
   render();
 }
 
@@ -776,7 +958,7 @@ function openDrawer(id) {
   if (it) {
     $("#dDelete").onclick = () => {
       if (!confirm("Delete " + it.id + " permanently?")) return;
-      store.remove(it.id).then(() => toast(it.id + " deleted")).catch(err => toast("Delete failed: " + (err.code || err.message)));
+      store.remove(it.id).then(() => toast(it.id + " deleted")).catch(err => toast("Delete failed: " + err.message));
       issues = issues.filter(i => i.id !== it.id);
       closeDrawer(); render();
     };
@@ -784,14 +966,13 @@ function openDrawer(id) {
       const txt = $("#dComment").value.trim();
       if (!txt) return;
       const cur = issues.find(i => i.id === it.id) || it;
-      const data = Object.assign({}, cur, {
-        comments: (cur.comments || []).concat([{ author: myName(), text: txt, at: new Date().toISOString() }]),
-        updatedAt: new Date().toISOString(), updatedBy: myName(),
-      });
+      cur.comments = (cur.comments || []).concat([{ author: myName(), text: txt, at: new Date().toISOString() }]);
+      cur.updatedAt = new Date().toISOString();
+      cur.updatedBy = myName();
+      const data = Object.assign({}, cur);
       delete data.id;
-      store.save(it.id, data).catch(err => toast("Save failed: " + (err.code || err.message)));
-      Object.assign(cur, data, { id: it.id });
-      openDrawer(it.id); // re-render drawer with new comment
+      store.save(it.id, data).catch(err => toast("Save failed: " + err.message));
+      openDrawer(it.id);
     };
   }
 }
@@ -838,7 +1019,7 @@ function saveDrawer() {
   const id = drawerId || nextId();
   store.save(id, data).then(
     () => toast(drawerId ? id + " saved" : id + " created"),
-    err => toast("Save failed: " + (err.code || err.message))
+    err => toast("Save failed: " + err.message)
   );
   const idx = issues.findIndex(i => i.id === id);
   const merged = Object.assign({ id }, data);
@@ -881,6 +1062,8 @@ function setView(v) {
   render();
 }
 
-render();
-initStore();
+/* ---------------- boot ---------------- */
+if (session) enterApp(); else showLogin();
 </script>
+</body>
+</html>
