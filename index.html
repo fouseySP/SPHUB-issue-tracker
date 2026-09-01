@@ -8,6 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root {
+    color-scheme: light;
     --bg: #F5F7F5;
     --surface: #FFFFFF;
     --surface-2: #EDF1EE;
@@ -39,6 +40,7 @@
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
+      color-scheme: dark;
       --bg: #111613;
       --surface: #1A211D;
       --surface-2: #212A25;
@@ -70,6 +72,7 @@
     }
   }
   :root[data-theme="dark"] {
+    color-scheme: dark;
     --bg: #111613;
     --surface: #1A211D;
     --surface-2: #212A25;
@@ -359,6 +362,8 @@
     border: 1px solid var(--border); border-radius: 8px; background: var(--bg);
   }
   .field textarea { resize: vertical; min-height: 84px; }
+  input[type="date"] { cursor: pointer; }
+  input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .8; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .pr-row { display: flex; gap: 8px; margin-bottom: 6px; }
   .pr-row input { flex: 1; }
