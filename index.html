@@ -1,0 +1,886 @@
+<title>SPHUB Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #F5F7F5;
+    --surface: #FFFFFF;
+    --surface-2: #EDF1EE;
+    --ink: #1B2420;
+    --muted: #5F6E66;
+    --faint: #8B988F;
+    --border: #DFE5E0;
+    --border-strong: #C6CFC8;
+    --accent: #0E7A5C;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E1F0E9;
+    --crit: #C0392B;
+    --crit-soft: #F7E4E1;
+    --high: #C46A15;
+    --high-soft: #F8EBDC;
+    --med: #8A7A12;
+    --med-soft: #F2EED3;
+    --low: #5C7A6E;
+    --low-soft: #E4ECE8;
+    --bug: #B03A48;
+    --bug-soft: #F6E3E5;
+    --enh: #21618C;
+    --enh-soft: #E0EBF3;
+    --task: #5B5E8D;
+    --task-soft: #E6E7F2;
+    --overdue: #C0392B;
+    --shadow: 0 1px 2px rgba(20, 30, 25, .06), 0 4px 14px rgba(20, 30, 25, .07);
+    --shadow-lift: 0 2px 6px rgba(20, 30, 25, .10), 0 10px 30px rgba(20, 30, 25, .14);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111613;
+      --surface: #1A211D;
+      --surface-2: #212A25;
+      --ink: #E7EDE9;
+      --muted: #9AA9A0;
+      --faint: #6E7C74;
+      --border: #2A342E;
+      --border-strong: #3A463F;
+      --accent: #3CB489;
+      --accent-ink: #0C1511;
+      --accent-soft: #1D3A2F;
+      --crit: #E36A5C;
+      --crit-soft: #3C2320;
+      --high: #E29A4B;
+      --high-soft: #3A2C1B;
+      --med: #C8B84A;
+      --med-soft: #34301A;
+      --low: #8FAE9F;
+      --low-soft: #24302A;
+      --bug: #E07A87;
+      --bug-soft: #3A2226;
+      --enh: #6FA8D6;
+      --enh-soft: #1E2C38;
+      --task: #9B9ED2;
+      --task-soft: #272939;
+      --overdue: #E36A5C;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.35);
+      --shadow-lift: 0 2px 6px rgba(0,0,0,.45), 0 10px 30px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111613;
+    --surface: #1A211D;
+    --surface-2: #212A25;
+    --ink: #E7EDE9;
+    --muted: #9AA9A0;
+    --faint: #6E7C74;
+    --border: #2A342E;
+    --border-strong: #3A463F;
+    --accent: #3CB489;
+    --accent-ink: #0C1511;
+    --accent-soft: #1D3A2F;
+    --crit: #E36A5C;
+    --crit-soft: #3C2320;
+    --high: #E29A4B;
+    --high-soft: #3A2C1B;
+    --med: #C8B84A;
+    --med-soft: #34301A;
+    --low: #8FAE9F;
+    --low-soft: #24302A;
+    --bug: #E07A87;
+    --bug-soft: #3A2226;
+    --enh: #6FA8D6;
+    --enh-soft: #1E2C38;
+    --task: #9B9ED2;
+    --task-soft: #272939;
+    --overdue: #E36A5C;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.35);
+    --shadow-lift: 0 2px 6px rgba(0,0,0,.45), 0 10px 30px rgba(0,0,0,.5);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 400 14.5px/1.5 "Instrument Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  input, select, textarea { font: inherit; color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .app { display: flex; flex-direction: column; height: 100vh; }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    padding: 14px 22px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand h1 {
+    margin: 0;
+    font: 700 19px/1 "Archivo", system-ui, sans-serif;
+    letter-spacing: -.01em;
+  }
+  .brand .sub {
+    font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
+  }
+  .stats { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+  .stat {
+    display: flex; align-items: center; gap: 7px;
+    padding: 5px 11px; border: 1px solid var(--border); border-radius: 999px;
+    background: var(--surface-2); font-size: 12.5px; color: var(--muted);
+  }
+  .stat b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .stat.alert b { color: var(--overdue); }
+  .conn { font-size: 11.5px; color: var(--faint); display: flex; align-items: center; gap: 6px; }
+  .conn .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+  .conn.live .dot { background: var(--accent); }
+  .conn.local .dot { background: var(--high); }
+
+  /* ---------- toolbar ---------- */
+  .toolbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .toolbar input[type="search"] {
+    flex: 1 1 200px; max-width: 320px;
+    padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg);
+  }
+  .toolbar select {
+    padding: 7px 8px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--muted); max-width: 160px;
+  }
+  .seg { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .seg button {
+    padding: 7px 14px; border: 0; background: transparent; color: var(--muted); font-weight: 500;
+  }
+  .seg button.on { background: var(--accent-soft); color: var(--accent); }
+  .btn-new {
+    margin-left: auto;
+    padding: 8px 16px; border: 0; border-radius: 8px;
+    background: var(--accent); color: var(--accent-ink); font-weight: 600;
+  }
+  .btn-new:hover { filter: brightness(1.07); }
+  .btn-clear {
+    border: 0; background: none; color: var(--muted); font-size: 12.5px;
+    text-decoration: underline; padding: 4px;
+  }
+
+  /* ---------- board ---------- */
+  main { flex: 1; overflow: auto; }
+  .board {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 18px 22px 28px; min-height: 100%;
+  }
+  .col {
+    flex: 0 0 292px; max-width: 292px;
+    background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: 12px;
+    display: flex; flex-direction: column; max-height: calc(100vh - 220px);
+  }
+  .col.dragover { border-color: var(--accent); background: var(--accent-soft); }
+  .col-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 14px 9px;
+    font: 600 12px/1 "Archivo", system-ui, sans-serif;
+    letter-spacing: .07em; text-transform: uppercase; color: var(--muted);
+  }
+  .col-head .count {
+    margin-left: auto; font-family: "JetBrains Mono", monospace; font-weight: 400;
+    color: var(--faint);
+  }
+  .col-body { padding: 4px 10px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border); border-left-width: 4px; border-radius: 10px;
+    padding: 10px 12px 11px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+  }
+  .card:hover { box-shadow: var(--shadow-lift); border-color: var(--border-strong); }
+  .card.p-critical { border-left-color: var(--crit); }
+  .card.p-high     { border-left-color: var(--high); }
+  .card.p-medium   { border-left-color: var(--med); }
+  .card.p-low      { border-left-color: var(--low); }
+  .card.dragging { opacity: .45; }
+  .card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .card-id { font: 500 11px "JetBrains Mono", monospace; color: var(--faint); }
+  .card-title { font-weight: 500; line-height: 1.35; margin: 0 0 8px; overflow-wrap: anywhere; }
+  .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); }
+  .avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    font: 600 9.5px "Archivo", sans-serif; letter-spacing: .02em;
+    flex: none;
+  }
+  .due { font-family: "JetBrains Mono", monospace; font-size: 11px; }
+  .due.overdue { color: var(--overdue); font-weight: 500; }
+  .prs { display: inline-flex; align-items: center; gap: 3px; font-family: "JetBrains Mono", monospace; font-size: 11px; }
+
+  .chip {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px; border-radius: 999px;
+    font-size: 10.5px; font-weight: 600; letter-spacing: .03em;
+  }
+  .chip.t-bug         { background: var(--bug-soft);  color: var(--bug); }
+  .chip.t-enhancement { background: var(--enh-soft);  color: var(--enh); }
+  .chip.t-task        { background: var(--task-soft); color: var(--task); }
+  .chip.pr-critical   { background: var(--crit-soft); color: var(--crit); }
+  .chip.pr-high       { background: var(--high-soft); color: var(--high); }
+  .chip.pr-medium     { background: var(--med-soft);  color: var(--med); }
+  .chip.pr-low        { background: var(--low-soft);  color: var(--low); }
+  .label-chip {
+    background: var(--surface-2); color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 1px 7px; border-radius: 999px; font-size: 10.5px;
+  }
+
+  .empty-col { color: var(--faint); font-size: 12.5px; text-align: center; padding: 18px 6px; }
+  .empty-all {
+    max-width: 460px; margin: 80px auto; text-align: center; color: var(--muted);
+  }
+  .empty-all h2 { font: 600 18px "Archivo", sans-serif; color: var(--ink); margin: 0 0 8px; }
+
+  /* ---------- table ---------- */
+  .table-wrap { padding: 16px 22px 30px; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 900px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  thead th {
+    text-align: left; padding: 10px 12px;
+    font: 600 11px "Archivo", sans-serif; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+    background: var(--surface-2); cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  thead th .arrow { color: var(--accent); }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--surface-2); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.mono { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  td.title-cell { font-weight: 500; max-width: 340px; }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 500;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--muted);
+    white-space: nowrap;
+  }
+  .status-pill .sdot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+
+  /* ---------- drawer ---------- */
+  .scrim {
+    position: fixed; inset: 0; background: rgba(10, 16, 13, .45);
+    opacity: 0; pointer-events: none; transition: opacity .18s;
+  }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(520px, 100vw);
+    background: var(--surface); border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-lift);
+    transform: translateX(102%); transition: transform .22s ease;
+    display: flex; flex-direction: column;
+  }
+  .drawer.open { transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .drawer, .scrim { transition: none; }
+  }
+  .drawer-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+  }
+  .drawer-head .card-id { font-size: 12px; }
+  .drawer-head h2 { margin: 0; font: 600 15px "Archivo", sans-serif; flex: 1; }
+  .icon-btn {
+    border: 1px solid var(--border); background: var(--surface-2); border-radius: 8px;
+    width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 15px;
+  }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 18px 20px 26px; }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; margin-bottom: 5px;
+    font: 600 11px "Archivo", sans-serif; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 8px 11px;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--bg);
+  }
+  .field textarea { resize: vertical; min-height: 84px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pr-row { display: flex; gap: 8px; margin-bottom: 6px; }
+  .pr-row input { flex: 1; }
+  .pr-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .pr-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-2); font-family: "JetBrains Mono", monospace; font-size: 12px;
+  }
+  .pr-item a { color: var(--accent); text-decoration: none; overflow-wrap: anywhere; }
+  .pr-item a:hover { text-decoration: underline; }
+  .pr-item button { margin-left: auto; border: 0; background: none; color: var(--faint); font-size: 14px; }
+  .pr-item button:hover { color: var(--crit); }
+
+  .drawer-foot {
+    display: flex; gap: 10px; align-items: center;
+    padding: 13px 20px; border-top: 1px solid var(--border); background: var(--surface);
+  }
+  .btn {
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface-2); font-weight: 500;
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .btn.danger { color: var(--crit); border-color: var(--crit-soft); background: var(--crit-soft); margin-right: auto; }
+
+  .comments { margin-top: 22px; border-top: 1px solid var(--border); padding-top: 16px; }
+  .comments h3 { margin: 0 0 10px; font: 600 12px "Archivo", sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .comment { display: flex; gap: 10px; margin-bottom: 12px; }
+  .comment .body { flex: 1; }
+  .comment .who { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .comment .who b { color: var(--ink); font-weight: 600; }
+  .comment .when { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--faint); }
+  .comment p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .comment-form { display: flex; gap: 8px; margin-top: 10px; }
+  .comment-form textarea { flex: 1; min-height: 40px; padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); resize: vertical; }
+
+  .meta-line { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--faint); margin-top: 16px; }
+
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--bg);
+    padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 500;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .toast.show { opacity: 1; }
+</style>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1>SPHUB Tracker</h1>
+      <span class="sub">SP Tech Team</span>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="conn" id="conn"><span class="dot"></span><span id="connLabel">connecting…</span></div>
+  </header>
+
+  <div class="toolbar">
+    <input type="search" id="fSearch" placeholder="Search title, ID, label, PR…">
+    <select id="fType">
+      <option value="">All types</option>
+      <option value="bug">Bug</option>
+      <option value="enhancement">Enhancement</option>
+      <option value="task">Task</option>
+    </select>
+    <select id="fPriority">
+      <option value="">All priorities</option>
+      <option value="critical">Critical</option>
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+    </select>
+    <select id="fAssignee"><option value="">All assignees</option></select>
+    <select id="fStatus">
+      <option value="">All statuses</option>
+      <option value="backlog">Backlog</option>
+      <option value="todo">To do</option>
+      <option value="inprogress">In progress</option>
+      <option value="inreview">In review</option>
+      <option value="done">Done</option>
+    </select>
+    <button class="btn-clear" id="clearFilters" hidden>Clear filters</button>
+    <div class="seg" role="tablist" aria-label="View">
+      <button id="viewBoard" class="on" role="tab" aria-selected="true">Board</button>
+      <button id="viewTable" role="tab" aria-selected="false">Table</button>
+    </div>
+    <button class="btn-new" id="btnNew">+ New issue</button>
+  </div>
+
+  <main id="main"></main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Issue details"></aside>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+
+/* ---------------- constants ---------------- */
+const STATUSES = [
+  { key: "backlog",    name: "Backlog",     dot: "var(--faint)" },
+  { key: "todo",       name: "To do",       dot: "var(--task)" },
+  { key: "inprogress", name: "In progress", dot: "var(--high)" },
+  { key: "inreview",   name: "In review",   dot: "var(--enh)" },
+  { key: "done",       name: "Done",        dot: "var(--accent)" },
+];
+const PRIORITIES = ["critical", "high", "medium", "low"];
+const PRIORITY_RANK = { critical: 0, high: 1, medium: 2, low: 3 };
+const TYPES = { bug: "Bug", enhancement: "Enhancement", task: "Task" };
+
+/* ---------------- store (shared db with local fallback) ---------------- */
+let issues = [];          // [{id, ...fields}]
+let store = null;         // {save(id,data), remove(id)}
+let connEl = document.getElementById("conn");
+
+function setConn(mode) {
+  connEl.classList.remove("live", "local");
+  const label = document.getElementById("connLabel");
+  if (mode === "live")  { connEl.classList.add("live");  label.textContent = "team sync on"; }
+  if (mode === "local") { connEl.classList.add("local"); label.textContent = "local only — data stays in this browser"; }
+}
+
+const LS_KEY = "sphub-tracker-issues";
+
+function startLocalStore() {
+  let map = {};
+  try { map = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch (e) { map = {}; }
+  const flush = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(map)); } catch (e) {} };
+  store = {
+    save(id, data) { map[id] = data; flush(); syncIssues(map); return Promise.resolve(); },
+    remove(id) { delete map[id]; flush(); syncIssues(map); return Promise.resolve(); },
+  };
+  setConn("local");
+  syncIssues(map);
+}
+
+function syncIssues(map) {
+  issues = Object.entries(map).map(([id, d]) => Object.assign({ id }, d));
+  render();
+}
+
+async function initStore() {
+  let db = null;
+  if (window.claude && window.claude.use) {
+    try { db = await claude.use("db"); } catch (e) { db = null; }
+  }
+  if (!db) { startLocalStore(); return; }
+  const col = db.collection("issues");
+  store = {
+    save(id, data) { return col.doc(id).set(data); },
+    remove(id) { return col.doc(id).delete(); },
+  };
+  col.onSnapshot(
+    snap => {
+      issues = snap.docs.filter(d => d.exists).map(d => Object.assign({ id: d.id }, d.data()));
+      setConn("live");
+      render();
+    },
+    err => {
+      toast("Sync error (" + err.code + ") — falling back to local data");
+      startLocalStore();
+    }
+  );
+}
+
+/* ---------------- identity ---------------- */
+function myName() {
+  let n = "";
+  try { n = localStorage.getItem("sphub-tracker-name") || ""; } catch (e) {}
+  if (!n) {
+    n = (prompt("Your name (shown on issues and comments):") || "").trim();
+    if (n) { try { localStorage.setItem("sphub-tracker-name", n); } catch (e) {} }
+  }
+  return n || "Unknown";
+}
+
+/* ---------------- helpers ---------------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s)
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const todayISO = () => new Date().toISOString().slice(0, 10);
+const fmtDate = iso => {
+  if (!iso) return "";
+  const d = new Date(iso + (iso.length === 10 ? "T00:00:00" : ""));
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+};
+const fmtDateTime = ts => {
+  if (!ts) return "";
+  const d = new Date(ts);
+  return isNaN(d) ? "" : d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+};
+const initials = name => (name || "?").trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+const isOverdue = it => it.dueDate && it.status !== "done" && it.dueDate < todayISO();
+
+function nextId() {
+  let max = 0;
+  for (const it of issues) {
+    const m = /^SPH-(\d+)$/.exec(it.id);
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  }
+  return "SPH-" + (max + 1);
+}
+
+let toastTimer = null;
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+function prHTML(pr) {
+  const safe = esc(pr);
+  if (/^https?:\/\//i.test(pr)) {
+    let label = safe;
+    const gh = /github\.com\/([^\/]+\/[^\/]+)\/pull\/(\d+)/i.exec(pr);
+    if (gh) label = esc(gh[1] + "#" + gh[2]);
+    return '<a href="' + safe + '" target="_blank" rel="noopener">' + label + "</a>";
+  }
+  return "<span>" + safe + "</span>";
+}
+
+/* ---------------- state ---------------- */
+let view = "board";
+let sortKey = "priority", sortDir = 1;
+const filters = { q: "", type: "", priority: "", assignee: "", status: "" };
+
+function filtered() {
+  const q = filters.q.trim().toLowerCase();
+  return issues.filter(it => {
+    if (filters.type && it.type !== filters.type) return false;
+    if (filters.priority && it.priority !== filters.priority) return false;
+    if (filters.assignee && (it.assignee || "") !== filters.assignee) return false;
+    if (filters.status && it.status !== filters.status) return false;
+    if (q) {
+      const hay = [it.id, it.title, it.description, it.assignee, (it.labels || []).join(" "), (it.prs || []).join(" ")]
+        .join(" ").toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+/* ---------------- render ---------------- */
+function render() {
+  renderStats();
+  renderAssigneeFilter();
+  $("#clearFilters").hidden = !(filters.q || filters.type || filters.priority || filters.assignee || filters.status);
+  if (view === "board") renderBoard(); else renderTable();
+}
+
+function renderStats() {
+  const open = issues.filter(i => i.status !== "done");
+  const overdue = issues.filter(isOverdue);
+  const crit = open.filter(i => i.priority === "critical");
+  const wip = issues.filter(i => i.status === "inprogress" || i.status === "inreview");
+  $("#stats").innerHTML =
+    '<span class="stat">Open <b>' + open.length + "</b></span>" +
+    '<span class="stat">In flight <b>' + wip.length + "</b></span>" +
+    '<span class="stat' + (crit.length ? " alert" : "") + '">Critical <b>' + crit.length + "</b></span>" +
+    '<span class="stat' + (overdue.length ? " alert" : "") + '">Overdue <b>' + overdue.length + "</b></span>" +
+    '<span class="stat">Done <b>' + (issues.length - open.length) + "</b></span>";
+}
+
+function renderAssigneeFilter() {
+  const sel = $("#fAssignee");
+  const cur = filters.assignee;
+  const names = [...new Set(issues.map(i => i.assignee).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  sel.innerHTML = '<option value="">All assignees</option>' +
+    names.map(n => '<option value="' + esc(n) + '"' + (n === cur ? " selected" : "") + ">" + esc(n) + "</option>").join("");
+}
+
+function cardHTML(it) {
+  const labels = (it.labels || []).slice(0, 3).map(l => '<span class="label-chip">' + esc(l) + "</span>").join("");
+  const due = it.dueDate
+    ? '<span class="due' + (isOverdue(it) ? " overdue" : "") + '" title="Due date">◷ ' + fmtDate(it.dueDate) + "</span>"
+    : "";
+  const prs = (it.prs || []).length
+    ? '<span class="prs" title="Linked PRs">⎇ ' + it.prs.length + "</span>"
+    : "";
+  const who = it.assignee
+    ? '<span class="avatar" title="' + esc(it.assignee) + '">' + esc(initials(it.assignee)) + "</span>"
+    : "";
+  return '<article class="card p-' + esc(it.priority) + '" draggable="true" data-id="' + esc(it.id) + '" tabindex="0" ' +
+    'aria-label="' + esc(it.id + " " + it.title) + '">' +
+    '<div class="card-top"><span class="card-id">' + esc(it.id) + "</span>" +
+    '<span class="chip t-' + esc(it.type) + '">' + esc(TYPES[it.type] || it.type) + "</span>" +
+    '<span class="chip pr-' + esc(it.priority) + '">' + esc(it.priority) + "</span></div>" +
+    '<p class="card-title">' + esc(it.title) + "</p>" +
+    '<div class="card-meta">' + who + due + prs + labels + "</div></article>";
+}
+
+function renderBoard() {
+  const list = filtered();
+  if (!issues.length) {
+    $("#main").innerHTML =
+      '<div class="empty-all"><h2>No issues yet</h2>' +
+      "<p>Track SPHUB bugs and enhancements here — priorities, due dates, owners, and the PRs that ship them.</p>" +
+      '<p><button class="btn primary" onclick="openDrawer(null)">Create the first issue</button></p></div>';
+    return;
+  }
+  const sorter = (a, b) =>
+    (PRIORITY_RANK[a.priority] ?? 9) - (PRIORITY_RANK[b.priority] ?? 9) ||
+    (a.dueDate || "9999").localeCompare(b.dueDate || "9999");
+  $("#main").innerHTML = '<div class="board">' + STATUSES.map(st => {
+    const items = list.filter(i => i.status === st.key).sort(sorter);
+    return '<section class="col" data-status="' + st.key + '">' +
+      '<div class="col-head"><span class="sdot" style="width:8px;height:8px;border-radius:50%;background:' + st.dot + '"></span>' +
+      esc(st.name) + '<span class="count">' + items.length + "</span></div>" +
+      '<div class="col-body">' +
+      (items.length ? items.map(cardHTML).join("") : '<div class="empty-col">—</div>') +
+      "</div></section>";
+  }).join("") + "</div>";
+  wireBoard();
+}
+
+function wireBoard() {
+  document.querySelectorAll(".card").forEach(el => {
+    el.addEventListener("click", () => openDrawer(el.dataset.id));
+    el.addEventListener("keydown", e => { if (e.key === "Enter") openDrawer(el.dataset.id); });
+    el.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("text/plain", el.dataset.id);
+      el.classList.add("dragging");
+    });
+    el.addEventListener("dragend", () => el.classList.remove("dragging"));
+  });
+  document.querySelectorAll(".col").forEach(col => {
+    col.addEventListener("dragover", e => { e.preventDefault(); col.classList.add("dragover"); });
+    col.addEventListener("dragleave", () => col.classList.remove("dragover"));
+    col.addEventListener("drop", e => {
+      e.preventDefault();
+      col.classList.remove("dragover");
+      const id = e.dataTransfer.getData("text/plain");
+      moveIssue(id, col.dataset.status);
+    });
+  });
+}
+
+function moveIssue(id, status) {
+  const it = issues.find(i => i.id === id);
+  if (!it || it.status === status) return;
+  const data = Object.assign({}, it, { status, updatedAt: new Date().toISOString(), updatedBy: myName() });
+  delete data.id;
+  store.save(id, data).catch(err => toast("Save failed: " + (err.code || err.message)));
+  it.status = status; // optimistic
+  render();
+}
+
+const TABLE_COLS = [
+  ["id", "ID"], ["title", "Title"], ["type", "Type"], ["priority", "Priority"],
+  ["status", "Status"], ["assignee", "Assignee"], ["dueDate", "Due"], ["prs", "PRs"], ["updatedAt", "Updated"],
+];
+
+function renderTable() {
+  const list = filtered().slice().sort((a, b) => {
+    let va, vb;
+    if (sortKey === "priority") { va = PRIORITY_RANK[a.priority] ?? 9; vb = PRIORITY_RANK[b.priority] ?? 9; }
+    else if (sortKey === "prs") { va = (a.prs || []).length; vb = (b.prs || []).length; }
+    else if (sortKey === "status") {
+      va = STATUSES.findIndex(s => s.key === a.status); vb = STATUSES.findIndex(s => s.key === b.status);
+    }
+    else if (sortKey === "id") {
+      va = parseInt((a.id.match(/\d+/) || [0])[0], 10); vb = parseInt((b.id.match(/\d+/) || [0])[0], 10);
+    }
+    else { va = a[sortKey] || ""; vb = b[sortKey] || ""; }
+    return (va < vb ? -1 : va > vb ? 1 : 0) * sortDir;
+  });
+  const head = TABLE_COLS.map(([k, label]) =>
+    "<th data-key=\"" + k + "\">" + label + (sortKey === k ? ' <span class="arrow">' + (sortDir === 1 ? "▲" : "▼") + "</span>" : "") + "</th>"
+  ).join("");
+  const rows = list.map(it => {
+    const st = STATUSES.find(s => s.key === it.status) || STATUSES[0];
+    return '<tr data-id="' + esc(it.id) + '">' +
+      '<td class="mono">' + esc(it.id) + "</td>" +
+      '<td class="title-cell">' + esc(it.title) + "</td>" +
+      '<td><span class="chip t-' + esc(it.type) + '">' + esc(TYPES[it.type] || it.type) + "</span></td>" +
+      '<td><span class="chip pr-' + esc(it.priority) + '">' + esc(it.priority) + "</span></td>" +
+      '<td><span class="status-pill"><span class="sdot" style="background:' + st.dot + '"></span>' + esc(st.name) + "</span></td>" +
+      "<td>" + (it.assignee ? '<span class="avatar" style="margin-right:6px">' + esc(initials(it.assignee)) + "</span>" + esc(it.assignee) : '<span style="color:var(--faint)">—</span>') + "</td>" +
+      '<td class="mono' + (isOverdue(it) ? '" style="color:var(--overdue)' : "") + '">' + (it.dueDate ? fmtDate(it.dueDate) : "—") + "</td>" +
+      '<td class="mono">' + ((it.prs || []).length || "—") + "</td>" +
+      '<td class="mono">' + fmtDateTime(it.updatedAt || it.createdAt) + "</td></tr>";
+  }).join("");
+  $("#main").innerHTML = '<div class="table-wrap"><table><thead><tr>' + head + "</tr></thead><tbody>" +
+    (rows || '<tr><td colspan="9" style="text-align:center;color:var(--faint);padding:26px">No issues match the current filters.</td></tr>') +
+    "</tbody></table></div>";
+  document.querySelectorAll("thead th").forEach(th => th.addEventListener("click", () => {
+    const k = th.dataset.key;
+    if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = 1; }
+    renderTable();
+  }));
+  document.querySelectorAll("tbody tr[data-id]").forEach(tr =>
+    tr.addEventListener("click", () => openDrawer(tr.dataset.id)));
+}
+
+/* ---------------- drawer ---------------- */
+let drawerPRs = [];
+let drawerId = null;
+
+function openDrawer(id) {
+  drawerId = id;
+  const it = id ? issues.find(i => i.id === id) : null;
+  drawerPRs = it ? (it.prs || []).slice() : [];
+  const assignees = [...new Set(issues.map(i => i.assignee).filter(Boolean))];
+
+  const comments = (it && it.comments || []).map(c =>
+    '<div class="comment"><span class="avatar">' + esc(initials(c.author)) + '</span><div class="body">' +
+    '<div class="who"><b>' + esc(c.author) + '</b> <span class="when">' + esc(fmtDateTime(c.at)) + "</span></div>" +
+    "<p>" + esc(c.text) + "</p></div></div>"
+  ).join("") || '<p style="color:var(--faint);font-size:13px">No comments yet.</p>';
+
+  $("#drawer").innerHTML =
+    '<div class="drawer-head">' +
+    (it ? '<span class="card-id">' + esc(it.id) + "</span>" : "") +
+    "<h2>" + (it ? "Edit issue" : "New issue") + "</h2>" +
+    '<button class="icon-btn" id="dClose" aria-label="Close">✕</button></div>' +
+    '<div class="drawer-body">' +
+    '<div class="field"><label for="dTitle">Title</label><input id="dTitle" value="' + esc(it ? it.title : "") + '" placeholder="Short, specific summary"></div>' +
+    '<div class="field"><label for="dDesc">Description</label><textarea id="dDesc" placeholder="What is broken / what should improve, where in SPHUB, acceptance criteria…">' + esc(it ? it.description : "") + "</textarea></div>" +
+    '<div class="grid2">' +
+    '<div class="field"><label for="dType">Type</label><select id="dType">' +
+    Object.entries(TYPES).map(([k, v]) => '<option value="' + k + '"' + (it && it.type === k ? " selected" : "") + ">" + v + "</option>").join("") +
+    "</select></div>" +
+    '<div class="field"><label for="dPriority">Priority</label><select id="dPriority">' +
+    PRIORITIES.map(p => '<option value="' + p + '"' + ((it ? it.priority : "medium") === p ? " selected" : "") + ">" + p[0].toUpperCase() + p.slice(1) + "</option>").join("") +
+    "</select></div>" +
+    '<div class="field"><label for="dStatus">Status</label><select id="dStatus">' +
+    STATUSES.map(s => '<option value="' + s.key + '"' + ((it ? it.status : "todo") === s.key ? " selected" : "") + ">" + s.name + "</option>").join("") +
+    "</select></div>" +
+    '<div class="field"><label for="dAssignee">Assignee</label><input id="dAssignee" list="assigneeList" value="' + esc(it ? it.assignee : "") + '" placeholder="Who owns this">' +
+    '<datalist id="assigneeList">' + assignees.map(a => '<option value="' + esc(a) + '">').join("") + "</datalist></div>" +
+    '<div class="field"><label for="dDue">Due date</label><input type="date" id="dDue" value="' + esc(it ? it.dueDate || "" : "") + '"></div>' +
+    '<div class="field"><label for="dLabels">Labels</label><input id="dLabels" value="' + esc(it && it.labels ? it.labels.join(", ") : "") + '" placeholder="ui, auth, perf (comma-separated)"></div>' +
+    "</div>" +
+    '<div class="field"><label for="dPrInput">Linked PRs</label>' +
+    '<div class="pr-row"><input id="dPrInput" placeholder="PR URL or #123"><button class="btn" id="dPrAdd">Add</button></div>' +
+    '<div class="pr-list" id="dPrList"></div></div>' +
+    (it ?
+      '<div class="comments"><h3>Comments</h3>' + comments +
+      '<div class="comment-form"><textarea id="dComment" placeholder="Add a comment…"></textarea><button class="btn" id="dCommentAdd">Post</button></div></div>' +
+      '<div class="meta-line">Reported by ' + esc(it.reporter || "unknown") + " · created " + esc(fmtDateTime(it.createdAt)) +
+      (it.updatedAt ? " · updated " + esc(fmtDateTime(it.updatedAt)) + (it.updatedBy ? " by " + esc(it.updatedBy) : "") : "") + "</div>"
+      : "") +
+    "</div>" +
+    '<div class="drawer-foot">' +
+    (it ? '<button class="btn danger" id="dDelete">Delete</button>' : "") +
+    '<button class="btn" id="dCancel" style="margin-left:auto">Cancel</button>' +
+    '<button class="btn primary" id="dSave">' + (it ? "Save changes" : "Create issue") + "</button></div>";
+
+  renderPRList();
+  $("#scrim").classList.add("open");
+  $("#drawer").classList.add("open");
+  $("#dTitle").focus();
+
+  $("#dClose").onclick = closeDrawer;
+  $("#dCancel").onclick = closeDrawer;
+  $("#dPrAdd").onclick = addPR;
+  $("#dPrInput").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addPR(); } });
+  $("#dSave").onclick = saveDrawer;
+  if (it) {
+    $("#dDelete").onclick = () => {
+      if (!confirm("Delete " + it.id + " permanently?")) return;
+      store.remove(it.id).then(() => toast(it.id + " deleted")).catch(err => toast("Delete failed: " + (err.code || err.message)));
+      issues = issues.filter(i => i.id !== it.id);
+      closeDrawer(); render();
+    };
+    $("#dCommentAdd").onclick = () => {
+      const txt = $("#dComment").value.trim();
+      if (!txt) return;
+      const cur = issues.find(i => i.id === it.id) || it;
+      const data = Object.assign({}, cur, {
+        comments: (cur.comments || []).concat([{ author: myName(), text: txt, at: new Date().toISOString() }]),
+        updatedAt: new Date().toISOString(), updatedBy: myName(),
+      });
+      delete data.id;
+      store.save(it.id, data).catch(err => toast("Save failed: " + (err.code || err.message)));
+      Object.assign(cur, data, { id: it.id });
+      openDrawer(it.id); // re-render drawer with new comment
+    };
+  }
+}
+
+function addPR() {
+  const v = $("#dPrInput").value.trim();
+  if (!v) return;
+  drawerPRs.push(v);
+  $("#dPrInput").value = "";
+  renderPRList();
+}
+
+function renderPRList() {
+  $("#dPrList").innerHTML = drawerPRs.map((pr, i) =>
+    '<div class="pr-item">' + prHTML(pr) + '<button data-i="' + i + '" aria-label="Remove PR link">✕</button></div>'
+  ).join("");
+  document.querySelectorAll("#dPrList button").forEach(b =>
+    b.addEventListener("click", () => { drawerPRs.splice(+b.dataset.i, 1); renderPRList(); }));
+}
+
+function saveDrawer() {
+  const title = $("#dTitle").value.trim();
+  if (!title) { toast("A title is required"); $("#dTitle").focus(); return; }
+  const pending = $("#dPrInput").value.trim();
+  if (pending) drawerPRs.push(pending);
+  const existing = drawerId ? issues.find(i => i.id === drawerId) : null;
+  const now = new Date().toISOString();
+  const data = {
+    title,
+    description: $("#dDesc").value.trim(),
+    type: $("#dType").value,
+    priority: $("#dPriority").value,
+    status: $("#dStatus").value,
+    assignee: $("#dAssignee").value.trim(),
+    dueDate: $("#dDue").value || "",
+    labels: $("#dLabels").value.split(",").map(s => s.trim()).filter(Boolean),
+    prs: drawerPRs.slice(),
+    comments: existing ? existing.comments || [] : [],
+    reporter: existing ? existing.reporter || myName() : myName(),
+    createdAt: existing ? existing.createdAt : now,
+    updatedAt: now,
+    updatedBy: myName(),
+  };
+  const id = drawerId || nextId();
+  store.save(id, data).then(
+    () => toast(drawerId ? id + " saved" : id + " created"),
+    err => toast("Save failed: " + (err.code || err.message))
+  );
+  const idx = issues.findIndex(i => i.id === id);
+  const merged = Object.assign({ id }, data);
+  if (idx >= 0) issues[idx] = merged; else issues.push(merged);
+  closeDrawer();
+  render();
+}
+
+function closeDrawer() {
+  drawerId = null;
+  $("#scrim").classList.remove("open");
+  $("#drawer").classList.remove("open");
+}
+
+/* ---------------- wiring ---------------- */
+$("#btnNew").addEventListener("click", () => openDrawer(null));
+$("#scrim").addEventListener("click", closeDrawer);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && $("#drawer").classList.contains("open")) closeDrawer();
+});
+$("#fSearch").addEventListener("input", e => { filters.q = e.target.value; render(); });
+$("#fType").addEventListener("change", e => { filters.type = e.target.value; render(); });
+$("#fPriority").addEventListener("change", e => { filters.priority = e.target.value; render(); });
+$("#fAssignee").addEventListener("change", e => { filters.assignee = e.target.value; render(); });
+$("#fStatus").addEventListener("change", e => { filters.status = e.target.value; render(); });
+$("#clearFilters").addEventListener("click", () => {
+  filters.q = filters.type = filters.priority = filters.assignee = filters.status = "";
+  $("#fSearch").value = ""; $("#fType").value = ""; $("#fPriority").value = "";
+  $("#fAssignee").value = ""; $("#fStatus").value = "";
+  render();
+});
+$("#viewBoard").addEventListener("click", () => setView("board"));
+$("#viewTable").addEventListener("click", () => setView("table"));
+function setView(v) {
+  view = v;
+  $("#viewBoard").classList.toggle("on", v === "board");
+  $("#viewTable").classList.toggle("on", v === "table");
+  $("#viewBoard").setAttribute("aria-selected", v === "board");
+  $("#viewTable").setAttribute("aria-selected", v === "table");
+  render();
+}
+
+render();
+initStore();
+</script>
