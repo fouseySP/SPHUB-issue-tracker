@@ -405,6 +405,49 @@
     max-width: 90vw;
   }
   .toast.show { opacity: 1; }
+
+  /* ---------- effort chips ---------- */
+  .chip.e-small  { background: var(--low-soft);  color: var(--low); }
+  .chip.e-medium { background: var(--med-soft);  color: var(--med); }
+  .chip.e-large  { background: var(--high-soft); color: var(--high); }
+  .chip.e-xlarge { background: var(--crit-soft); color: var(--crit); }
+
+  /* ---------- team ---------- */
+  .member-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 0; border-bottom: 1px solid var(--border);
+  }
+  .member-row:last-child { border-bottom: 0; }
+  .member-info { flex: 1; min-width: 0; }
+  .member-info .nm { font-weight: 600; }
+  .member-info .em { font-size: 12px; color: var(--muted); font-family: "JetBrains Mono", monospace; overflow-wrap: anywhere; }
+  .member-row select { padding: 5px 6px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg); font-size: 12.5px; }
+  .member-row .rm { border: 0; background: none; color: var(--faint); font-size: 14px; }
+  .member-row .rm:hover { color: var(--crit); }
+  .team-add { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 16px; }
+  .team-note { font-size: 12px; color: var(--faint); margin-top: 14px; line-height: 1.5; }
+  .btn-team {
+    border: 1px solid var(--border); background: var(--surface-2); border-radius: 8px;
+    padding: 5px 12px; font-size: 12.5px; color: var(--muted);
+  }
+  .btn-team:hover { color: var(--ink); }
+
+  /* ---------- who-are-you modal ---------- */
+  .who-wrap {
+    position: fixed; inset: 0; background: rgba(10, 16, 13, .5);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+    z-index: 50;
+  }
+  .who-wrap[hidden] { display: none; }
+  .who-card {
+    width: 100%; max-width: 340px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: var(--shadow-lift); padding: 24px 24px 20px;
+  }
+  .who-card h2 { margin: 0 0 4px; font: 600 16px "Archivo", sans-serif; }
+  .who-card p { margin: 0 0 14px; font-size: 13px; color: var(--muted); }
+  .who-card select { width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); margin-bottom: 14px; }
+  .who-card .btn.primary { width: 100%; }
 </style>
 </head>
 <body>
@@ -431,6 +474,7 @@
     </div>
     <div class="stats" id="stats"></div>
     <div class="conn" id="conn"><span class="dot"></span><span id="connLabel">connecting…</span></div>
+    <button class="btn-team" id="btnTeam">Team</button>
     <button class="btn-signout" id="btnSignout">Sign out</button>
   </header>
 
@@ -467,6 +511,15 @@
   </div>
 
   <main id="main"></main>
+</div>
+
+<div class="who-wrap" id="whoWrap" hidden>
+  <div class="who-card">
+    <h2>Who are you?</h2>
+    <p>Pick yourself from the team list — used for reporter, comments, and edit history.</p>
+    <select id="whoSelect"></select>
+    <button class="btn primary" id="whoConfirm">That's me</button>
+  </div>
 </div>
 
 <div class="scrim" id="scrim"></div>
@@ -561,6 +614,22 @@ const store = {
       headers: { "Prefer": "return=minimal" },
     });
   },
+  loadMembers() {
+    return api("members?select=email,name,notify_frequency&order=name.asc");
+  },
+  saveMember(m) {
+    return api("members?on_conflict=email", {
+      method: "POST",
+      headers: { "Prefer": "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify([m]),
+    });
+  },
+  removeMember(email) {
+    return api("members?email=eq." + encodeURIComponent(email), {
+      method: "DELETE",
+      headers: { "Prefer": "return=minimal" },
+    });
+  },
 };
 
 /* ---------------- auth flow ---------------- */
@@ -616,9 +685,12 @@ function setConn(mode, label) {
 
 async function refresh(showErrors) {
   try {
-    issues = await store.loadAll();
+    const [iss, mem] = await Promise.all([store.loadAll(), store.loadMembers()]);
+    issues = iss;
+    members = mem;
     setConn("live", "team sync on");
     render();
+    ensureIdentity();
   } catch (err) {
     setConn("err", "sync error");
     if (showErrors) toast(err.message);
@@ -644,15 +716,29 @@ function enterApp() {
 }
 
 /* ---------------- identity ---------------- */
-function myName() {
-  let n = "";
-  try { n = localStorage.getItem("sphub-tracker-name") || ""; } catch (e) {}
-  if (!n) {
-    n = (prompt("Your name (shown on issues and comments):") || "").trim();
-    if (n) { try { localStorage.setItem("sphub-tracker-name", n); } catch (e) {} }
-  }
-  return n || "Unknown";
+let members = [];
+let me = null;
+try { me = JSON.parse(localStorage.getItem("sphub-tracker-me") || "null"); } catch (e) { me = null; }
+
+function myName() { return me ? me.name : "Unknown"; }
+
+function ensureIdentity() {
+  if (!members.length) return; // team empty — nothing to pick yet
+  if (me && members.some(m => m.email === me.email)) { $("#whoWrap").hidden = true; return; }
+  const sel = $("#whoSelect");
+  sel.innerHTML = members.map(m =>
+    '<option value="' + esc(m.email) + '">' + esc(m.name) + " — " + esc(m.email) + "</option>").join("");
+  $("#whoWrap").hidden = false;
 }
+
+$("#whoConfirm").addEventListener("click", () => {
+  const m = members.find(x => x.email === $("#whoSelect").value);
+  if (!m) return;
+  me = { name: m.name, email: m.email };
+  try { localStorage.setItem("sphub-tracker-me", JSON.stringify(me)); } catch (e) {}
+  $("#whoWrap").hidden = true;
+  toast("Signed in as " + m.name);
+});
 
 /* ---------------- constants ---------------- */
 const STATUSES = [
@@ -665,6 +751,13 @@ const STATUSES = [
 const PRIORITIES = ["critical", "high", "medium", "low"];
 const PRIORITY_RANK = { critical: 0, high: 1, medium: 2, low: 3 };
 const TYPES = { bug: "Bug", enhancement: "Enhancement", task: "Task" };
+const EFFORTS = {
+  small:  { short: "S",  name: "Small — quick fix" },
+  medium: { short: "M",  name: "Medium — a day or two" },
+  large:  { short: "L",  name: "Large — hard / multi-day" },
+  xlarge: { short: "XL", name: "X-Large — very hard / long haul" },
+};
+const EFFORT_RANK = { small: 0, medium: 1, large: 2, xlarge: 3 };
 
 /* ---------------- helpers ---------------- */
 const $ = s => document.querySelector(s);
@@ -781,7 +874,9 @@ function cardHTML(it) {
     'aria-label="' + esc(it.id + " " + it.title) + '">' +
     '<div class="card-top"><span class="card-id">' + esc(it.id) + "</span>" +
     '<span class="chip t-' + esc(it.type) + '">' + esc(TYPES[it.type] || it.type) + "</span>" +
-    '<span class="chip pr-' + esc(it.priority) + '">' + esc(it.priority) + "</span></div>" +
+    '<span class="chip pr-' + esc(it.priority) + '">' + esc(it.priority) + "</span>" +
+    (it.effort && EFFORTS[it.effort] ? '<span class="chip e-' + esc(it.effort) + '" title="' + esc(EFFORTS[it.effort].name) + '">' + EFFORTS[it.effort].short + "</span>" : "") +
+    "</div>" +
     '<p class="card-title">' + esc(it.title) + "</p>" +
     '<div class="card-meta">' + who + due + prs + labels + "</div></article>";
 }
@@ -845,7 +940,7 @@ function moveIssue(id, status) {
 }
 
 const TABLE_COLS = [
-  ["id", "ID"], ["title", "Title"], ["type", "Type"], ["priority", "Priority"],
+  ["id", "ID"], ["title", "Title"], ["type", "Type"], ["priority", "Priority"], ["effort", "Effort"],
   ["status", "Status"], ["assignee", "Assignee"], ["dueDate", "Due"], ["prs", "PRs"], ["updatedAt", "Updated"],
 ];
 
@@ -853,6 +948,7 @@ function renderTable() {
   const list = filtered().slice().sort((a, b) => {
     let va, vb;
     if (sortKey === "priority") { va = PRIORITY_RANK[a.priority] ?? 9; vb = PRIORITY_RANK[b.priority] ?? 9; }
+    else if (sortKey === "effort") { va = EFFORT_RANK[a.effort] ?? 9; vb = EFFORT_RANK[b.effort] ?? 9; }
     else if (sortKey === "prs") { va = (a.prs || []).length; vb = (b.prs || []).length; }
     else if (sortKey === "status") {
       va = STATUSES.findIndex(s => s.key === a.status); vb = STATUSES.findIndex(s => s.key === b.status);
@@ -873,6 +969,7 @@ function renderTable() {
       '<td class="title-cell">' + esc(it.title) + "</td>" +
       '<td><span class="chip t-' + esc(it.type) + '">' + esc(TYPES[it.type] || it.type) + "</span></td>" +
       '<td><span class="chip pr-' + esc(it.priority) + '">' + esc(it.priority) + "</span></td>" +
+      "<td>" + (it.effort && EFFORTS[it.effort] ? '<span class="chip e-' + esc(it.effort) + '" title="' + esc(EFFORTS[it.effort].name) + '">' + EFFORTS[it.effort].short + "</span>" : '<span style="color:var(--faint)">—</span>') + "</td>" +
       '<td><span class="status-pill"><span class="sdot" style="background:' + st.dot + '"></span>' + esc(st.name) + "</span></td>" +
       "<td>" + (it.assignee ? '<span class="avatar" style="margin-right:6px">' + esc(initials(it.assignee)) + "</span>" + esc(it.assignee) : '<span style="color:var(--faint)">—</span>') + "</td>" +
       '<td class="mono' + (isOverdue(it) ? '" style="color:var(--overdue)' : "") + '">' + (it.dueDate ? fmtDate(it.dueDate) : "—") + "</td>" +
@@ -880,7 +977,7 @@ function renderTable() {
       '<td class="mono">' + fmtDateTime(it.updatedAt || it.createdAt) + "</td></tr>";
   }).join("");
   $("#main").innerHTML = '<div class="table-wrap"><table><thead><tr>' + head + "</tr></thead><tbody>" +
-    (rows || '<tr><td colspan="9" style="text-align:center;color:var(--faint);padding:26px">No issues match the current filters.</td></tr>') +
+    (rows || '<tr><td colspan="10" style="text-align:center;color:var(--faint);padding:26px">No issues match the current filters.</td></tr>') +
     "</tbody></table></div>";
   document.querySelectorAll("thead th").forEach(th => th.addEventListener("click", () => {
     const k = th.dataset.key;
@@ -899,7 +996,6 @@ function openDrawer(id) {
   drawerId = id;
   const it = id ? issues.find(i => i.id === id) : null;
   drawerPRs = it ? (it.prs || []).slice() : [];
-  const assignees = [...new Set(issues.map(i => i.assignee).filter(Boolean))];
 
   const comments = (it && it.comments || []).map(c =>
     '<div class="comment"><span class="avatar">' + esc(initials(c.author)) + '</span><div class="body">' +
@@ -925,8 +1021,14 @@ function openDrawer(id) {
     '<div class="field"><label for="dStatus">Status</label><select id="dStatus">' +
     STATUSES.map(s => '<option value="' + s.key + '"' + ((it ? it.status : "todo") === s.key ? " selected" : "") + ">" + s.name + "</option>").join("") +
     "</select></div>" +
-    '<div class="field"><label for="dAssignee">Assignee</label><input id="dAssignee" list="assigneeList" value="' + esc(it ? it.assignee : "") + '" placeholder="Who owns this">' +
-    '<datalist id="assigneeList">' + assignees.map(a => '<option value="' + esc(a) + '">').join("") + "</datalist></div>" +
+    '<div class="field"><label for="dAssignee">Assignee</label><select id="dAssignee">' +
+    '<option value="">Unassigned</option>' +
+    members.map(m => '<option value="' + esc(m.email) + '"' + (it && it.assigneeEmail === m.email ? " selected" : "") + ">" + esc(m.name) + "</option>").join("") +
+    "</select></div>" +
+    '<div class="field"><label for="dEffort">Effort</label><select id="dEffort">' +
+    '<option value="">Not sized</option>' +
+    Object.entries(EFFORTS).map(([k, v]) => '<option value="' + k + '"' + (it && it.effort === k ? " selected" : "") + ">" + v.name + "</option>").join("") +
+    "</select></div>" +
     '<div class="field"><label for="dDue">Due date</label><input type="date" id="dDue" value="' + esc(it ? it.dueDate || "" : "") + '"></div>' +
     '<div class="field"><label for="dLabels">Labels</label><input id="dLabels" value="' + esc(it && it.labels ? it.labels.join(", ") : "") + '" placeholder="ui, auth, perf (comma-separated)"></div>' +
     "</div>" +
@@ -1000,13 +1102,17 @@ function saveDrawer() {
   if (pending) drawerPRs.push(pending);
   const existing = drawerId ? issues.find(i => i.id === drawerId) : null;
   const now = new Date().toISOString();
+  const assigneeEmail = $("#dAssignee").value;
+  const assigneeMember = members.find(m => m.email === assigneeEmail);
   const data = {
     title,
     description: $("#dDesc").value.trim(),
     type: $("#dType").value,
     priority: $("#dPriority").value,
+    effort: $("#dEffort").value || "",
     status: $("#dStatus").value,
-    assignee: $("#dAssignee").value.trim(),
+    assignee: assigneeMember ? assigneeMember.name : "",
+    assigneeEmail: assigneeMember ? assigneeMember.email : "",
     dueDate: $("#dDue").value || "",
     labels: $("#dLabels").value.split(",").map(s => s.trim()).filter(Boolean),
     prs: drawerPRs.slice(),
@@ -1034,8 +1140,88 @@ function closeDrawer() {
   $("#drawer").classList.remove("open");
 }
 
+/* ---------------- team drawer ---------------- */
+const FREQS = [
+  ["instant", "Instant (within ~5 min)"],
+  ["hourly", "Hourly digest"],
+  ["daily", "Daily digest"],
+  ["off", "No emails"],
+];
+
+function freqSelectHTML(id, current) {
+  return '<select id="' + id + '" aria-label="Email frequency">' +
+    FREQS.map(([k, v]) => '<option value="' + k + '"' + (current === k ? " selected" : "") + ">" + v + "</option>").join("") +
+    "</select>";
+}
+
+function openTeamDrawer() {
+  drawerId = null;
+  const rows = members.map((m, i) =>
+    '<div class="member-row">' +
+    '<span class="avatar">' + esc(initials(m.name)) + "</span>" +
+    '<div class="member-info"><div class="nm">' + esc(m.name) + '</div><div class="em">' + esc(m.email) + "</div></div>" +
+    freqSelectHTML("mFreq-" + i, m.notify_frequency) +
+    '<button class="rm" data-email="' + esc(m.email) + '" aria-label="Remove member">✕</button>' +
+    "</div>"
+  ).join("") || '<p style="color:var(--faint);font-size:13px">No team members yet — add the first one below.</p>';
+
+  $("#drawer").innerHTML =
+    '<div class="drawer-head"><h2>Team</h2>' +
+    '<button class="icon-btn" id="dClose" aria-label="Close">✕</button></div>' +
+    '<div class="drawer-body">' + rows +
+    '<div class="team-add">' +
+    '<div class="field"><label for="mName">Name</label><input id="mName" placeholder="e.g. Yousef Alqufaidi"></div>' +
+    '<div class="field"><label for="mEmail">Email</label><input id="mEmail" type="email" placeholder="name@saudipanther.sa"></div>' +
+    '<div class="field"><label for="mFreqNew">Email frequency</label>' + freqSelectHTML("mFreqNew", "instant") + "</div>" +
+    '<button class="btn primary" id="mAdd">Add member</button></div>' +
+    '<p class="team-note">Members appear in the assignee dropdown. When an issue is assigned to someone, they get an email at their chosen frequency (digests bundle multiple assignments into one email).</p>' +
+    "</div>" +
+    '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-left:auto">Close</button></div>';
+
+  $("#scrim").classList.add("open");
+  $("#drawer").classList.add("open");
+  $("#dClose").onclick = closeDrawer;
+  $("#dCancel").onclick = closeDrawer;
+
+  members.forEach((m, i) => {
+    const sel = document.getElementById("mFreq-" + i);
+    sel.addEventListener("change", () => {
+      store.saveMember({ email: m.email, name: m.name, notify_frequency: sel.value })
+        .then(() => { m.notify_frequency = sel.value; toast(m.name + ": " + sel.options[sel.selectedIndex].text); })
+        .catch(err => toast("Save failed: " + err.message));
+    });
+  });
+  document.querySelectorAll("#drawer .rm").forEach(b =>
+    b.addEventListener("click", () => {
+      const email = b.dataset.email;
+      const m = members.find(x => x.email === email);
+      if (!confirm("Remove " + (m ? m.name : email) + " from the team?")) return;
+      store.removeMember(email)
+        .then(() => {
+          members = members.filter(x => x.email !== email);
+          toast("Member removed");
+          openTeamDrawer();
+        })
+        .catch(err => toast("Remove failed: " + err.message));
+    }));
+  $("#mAdd").onclick = () => {
+    const name = $("#mName").value.trim();
+    const email = $("#mEmail").value.trim().toLowerCase();
+    if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast("A name and a valid email are required"); return; }
+    const m = { email, name, notify_frequency: $("#mFreqNew").value };
+    store.saveMember(m)
+      .then(() => {
+        members = members.filter(x => x.email !== email).concat([m]).sort((a, b) => a.name.localeCompare(b.name));
+        toast(name + " added");
+        openTeamDrawer();
+      })
+      .catch(err => toast("Add failed: " + err.message));
+  };
+}
+
 /* ---------------- wiring ---------------- */
 $("#btnNew").addEventListener("click", () => openDrawer(null));
+$("#btnTeam").addEventListener("click", openTeamDrawer);
 $("#scrim").addEventListener("click", closeDrawer);
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && $("#drawer").classList.contains("open")) closeDrawer();
