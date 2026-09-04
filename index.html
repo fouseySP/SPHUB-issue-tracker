@@ -220,6 +220,17 @@
     border: 0; background: none; color: var(--muted); font-size: 12.5px;
     text-decoration: underline; padding: 4px;
   }
+  .btn-mine {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 14px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--muted); font-weight: 500;
+  }
+  .btn-mine.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .btn-mine .cnt {
+    background: var(--surface-2); border-radius: 999px; padding: 0 7px;
+    font: 500 11px "JetBrains Mono", monospace; color: var(--muted);
+  }
+  .btn-mine.on .cnt { background: var(--accent); color: var(--accent-ink); }
 
   /* ---------- board ---------- */
   main { flex: 1; overflow: auto; }
@@ -484,6 +495,7 @@
   </header>
 
   <div class="toolbar">
+    <button class="btn-mine" id="fMine" aria-pressed="false">My tasks <span class="cnt" id="mineCount">0</span></button>
     <input type="search" id="fSearch" placeholder="Search title, ID, label, PR…">
     <select id="fType">
       <option value="">All types</option>
@@ -817,11 +829,17 @@ function prHTML(pr) {
 /* ---------------- state ---------------- */
 let view = "board";
 let sortKey = "priority", sortDir = 1;
-const filters = { q: "", type: "", priority: "", assignee: "", status: "" };
+const filters = { q: "", type: "", priority: "", assignee: "", status: "", mine: false };
+
+function isMine(it) {
+  if (!me) return false;
+  return it.assigneeEmail === me.email || (!it.assigneeEmail && it.assignee && it.assignee === me.name);
+}
 
 function filtered() {
   const q = filters.q.trim().toLowerCase();
   return issues.filter(it => {
+    if (filters.mine && !isMine(it)) return false;
     if (filters.type && it.type !== filters.type) return false;
     if (filters.priority && it.priority !== filters.priority) return false;
     if (filters.assignee && (it.assignee || "") !== filters.assignee) return false;
@@ -839,7 +857,11 @@ function filtered() {
 function render() {
   renderStats();
   renderAssigneeFilter();
-  $("#clearFilters").hidden = !(filters.q || filters.type || filters.priority || filters.assignee || filters.status);
+  const openMine = issues.filter(it => isMine(it) && it.status !== "done").length;
+  $("#mineCount").textContent = openMine;
+  $("#fMine").classList.toggle("on", filters.mine);
+  $("#fMine").setAttribute("aria-pressed", String(filters.mine));
+  $("#clearFilters").hidden = !(filters.q || filters.type || filters.priority || filters.assignee || filters.status || filters.mine);
   if (view === "board") renderBoard(); else renderTable();
 }
 
@@ -1236,8 +1258,14 @@ $("#fType").addEventListener("change", e => { filters.type = e.target.value; ren
 $("#fPriority").addEventListener("change", e => { filters.priority = e.target.value; render(); });
 $("#fAssignee").addEventListener("change", e => { filters.assignee = e.target.value; render(); });
 $("#fStatus").addEventListener("change", e => { filters.status = e.target.value; render(); });
+$("#fMine").addEventListener("click", () => {
+  if (!me) { toast("Pick who you are first (it appears when the team list loads)"); return; }
+  filters.mine = !filters.mine;
+  render();
+});
 $("#clearFilters").addEventListener("click", () => {
   filters.q = filters.type = filters.priority = filters.assignee = filters.status = "";
+  filters.mine = false;
   $("#fSearch").value = ""; $("#fType").value = ""; $("#fPriority").value = "";
   $("#fAssignee").value = ""; $("#fStatus").value = "";
   render();
