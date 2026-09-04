@@ -638,7 +638,7 @@ const I18N = {
     accountAccess: "Account access", accountEmail: "Account email", accountEmailPh: "login email of the account",
     accessLevel: "Access level", roleEditor: "Editor — full control", roleViewer: "Viewer — read-only + can report",
     setAccess: "Set access", you: "(you)", noRules: "No access rules yet.",
-    accessNote: "These rules apply to login accounts. Any account with no rule here is a viewer by default, so you only need entries for editors (or to pin someone explicitly to viewer). You cannot change your own access, and the last editor can never be removed.",
+    accessNote: "Every login account is listed with its access level. New accounts start as viewers. You cannot change your own access, and the last editor can never be removed.",
     ownAccess: "You cannot change your own access", isNow: " is now ", changeFailed: "Change failed: ",
     removeRule: "Remove the access rule for {email}? The account becomes a viewer.", ruleRemoved: "Access rule removed",
     setTo: " set to ", enterAccountEmail: "Enter the account's login email",
@@ -711,7 +711,7 @@ const I18N = {
     accountAccess: "صلاحيات الحسابات", accountEmail: "بريد الحساب", accountEmailPh: "البريد المستخدم لتسجيل الدخول",
     accessLevel: "مستوى الصلاحية", roleEditor: "محرر — تحكم كامل", roleViewer: "مشاهد — عرض فقط + إبلاغ",
     setAccess: "تعيين الصلاحية", you: "(أنت)", noRules: "لا توجد قواعد صلاحية بعد.",
-    accessNote: "تنطبق هذه القواعد على حسابات الدخول. أي حساب بلا قاعدة هنا يُعد مشاهدًا افتراضيًا، فلا تحتاج إلا لإدخال المحررين. لا يمكنك تغيير صلاحيتك، ولا يمكن إزالة آخر محرر.",
+    accessNote: "كل حسابات الدخول مدرجة هنا مع مستوى صلاحيتها. الحسابات الجديدة تبدأ كمشاهدين. لا يمكنك تغيير صلاحيتك، ولا يمكن إزالة آخر محرر.",
     ownAccess: "لا يمكنك تغيير صلاحيتك", isNow: " أصبح ", changeFailed: "فشل التغيير: ",
     removeRule: "إزالة قاعدة الصلاحية لـ {email}؟ سيصبح الحساب مشاهدًا.", ruleRemoved: "أُزيلت قاعدة الصلاحية",
     setTo: " عُيّن إلى ", enterAccountEmail: "أدخل بريد تسجيل الدخول للحساب",
@@ -902,6 +902,9 @@ const store = {
   },
   loadRoles() {
     return api("roles?select=email,role&order=email.asc");
+  },
+  listAccounts() {
+    return api("rpc/list_accounts", { method: "POST", body: "{}" });
   },
   saveRole(email, roleValue) {
     return api("roles?on_conflict=email", {
@@ -1500,7 +1503,8 @@ function freqSelectHTML(id, current) {
 async function openTeamDrawer() {
   drawerId = null;
   let rolesList = [];
-  try { rolesList = await store.loadRoles(); } catch (e) { rolesList = []; }
+  try { rolesList = await store.listAccounts(); }
+  catch (e) { try { rolesList = await store.loadRoles(); } catch (e2) { rolesList = []; } }
   const myEmail = (session && session.email || "").toLowerCase();
 
   const accessRows = rolesList.map((r, i) => {
@@ -1511,7 +1515,6 @@ async function openTeamDrawer() {
       '<option value="editor"' + (r.role === "editor" ? " selected" : "") + ">" + t("roleEditor") + "</option>" +
       '<option value="viewer"' + (r.role === "viewer" ? " selected" : "") + ">" + t("roleViewer") + "</option>" +
       "</select>" +
-      (self ? "" : '<button class="rm" data-roleemail="' + esc(r.email) + '" aria-label="Remove access rule">✕</button>') +
       "</div>";
   }).join("") || '<p style="color:var(--faint);font-size:13px">' + t("noRules") + "</p>";
 
@@ -1536,11 +1539,6 @@ async function openTeamDrawer() {
     '<p class="team-note">' + t("teamNote") + "</p>" +
     '<div class="team-add"><div class="field"><label>' + t("accountAccess") + "</label></div>" +
     accessRows +
-    '<div class="field" style="margin-top:14px"><label for="aEmail">' + t("accountEmail") + '</label><input id="aEmail" type="email" placeholder="' + esc(t("accountEmailPh")) + '"></div>' +
-    '<div class="field"><label for="aRoleNew">' + t("accessLevel") + '</label><select id="aRoleNew">' +
-    '<option value="editor">' + t("roleEditor") + "</option>" +
-    '<option value="viewer">' + t("roleViewer") + "</option></select></div>" +
-    '<button class="btn" id="aAdd">' + t("setAccess") + "</button>" +
     '<p class="team-note">' + t("accessNote") + "</p>" +
     "</div></div>" +
     '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-inline-start:auto">' + t("close") + "</button></div>";
@@ -1580,23 +1578,6 @@ async function openTeamDrawer() {
         .catch(err => { toast(t("changeFailed") + err.message); openTeamDrawer(); });
     });
   });
-  document.querySelectorAll("#drawer [data-roleemail]").forEach(b =>
-    b.addEventListener("click", () => {
-      const email = b.dataset.roleemail;
-      if (!confirm(t("removeRule").replace("{email}", email))) return;
-      store.removeRole(email)
-        .then(() => { toast(t("ruleRemoved")); openTeamDrawer(); })
-        .catch(err => toast(t("removeFailed") + err.message));
-    }));
-  $("#aAdd").onclick = () => {
-    const email = $("#aEmail").value.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast(t("enterAccountEmail")); return; }
-    if (email === myEmail) { toast(t("ownAccess")); return; }
-    store.saveRole(email, $("#aRoleNew").value)
-      .then(() => { toast(email + t("setTo") + $("#aRoleNew").value); openTeamDrawer(); })
-      .catch(err => toast(t("saveFailed") + err.message));
-  };
-
   $("#mAdd").onclick = () => {
     const name = $("#mName").value.trim();
     const email = $("#mEmail").value.trim().toLowerCase();
