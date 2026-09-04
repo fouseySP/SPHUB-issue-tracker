@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>SPHUB Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root {
@@ -105,6 +105,16 @@
 
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
+  html[lang="ar"] body,
+  html[lang="ar"] button, html[lang="ar"] input, html[lang="ar"] select, html[lang="ar"] textarea {
+    font-family: "IBM Plex Sans Arabic", "Instrument Sans", system-ui, sans-serif;
+  }
+  html[lang="ar"] .brand h1, html[lang="ar"] .login-card h1, html[lang="ar"] .col-head,
+  html[lang="ar"] .field label, html[lang="ar"] thead th, html[lang="ar"] .login-card label,
+  html[lang="ar"] .comments h3, html[lang="ar"] .drawer-head h2, html[lang="ar"] .who-card h2,
+  html[lang="ar"] .empty-all h2, html[lang="ar"] .avatar {
+    font-family: "IBM Plex Sans Arabic", "Archivo", system-ui, sans-serif;
+  }
   html, body { margin: 0; height: 100%; }
   body {
     background: var(--bg);
@@ -172,7 +182,7 @@
   .brand .sub {
     font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
   }
-  .stats { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+  .stats { display: flex; gap: 8px; flex-wrap: wrap; margin-inline-start: auto; }
   .stat {
     display: flex; align-items: center; gap: 7px;
     padding: 5px 11px; border: 1px solid var(--border); border-radius: 999px;
@@ -212,7 +222,7 @@
   }
   .seg button.on { background: var(--accent-soft); color: var(--accent); }
   .btn-new {
-    margin-left: auto;
+    margin-inline-start: auto;
     padding: 8px 16px; border: 0; border-radius: 8px;
     background: var(--accent); color: var(--accent-ink); font-weight: 600;
   }
@@ -275,16 +285,16 @@
 
   .card {
     background: var(--surface);
-    border: 1px solid var(--border); border-left-width: 4px; border-radius: 10px;
+    border: 1px solid var(--border); border-inline-start-width: 4px; border-radius: 10px;
     padding: 10px 12px 11px;
     box-shadow: var(--shadow);
     cursor: pointer;
   }
   .card:hover { box-shadow: var(--shadow-lift); border-color: var(--border-strong); }
-  .card.p-critical { border-left-color: var(--crit); }
-  .card.p-high     { border-left-color: var(--high); }
-  .card.p-medium   { border-left-color: var(--med); }
-  .card.p-low      { border-left-color: var(--low); }
+  .card.p-critical { border-inline-start-color: var(--crit); }
+  .card.p-high     { border-inline-start-color: var(--high); }
+  .card.p-medium   { border-inline-start-color: var(--med); }
+  .card.p-low      { border-inline-start-color: var(--low); }
   .card.dragging { opacity: .45; }
   .card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
   .card-id { font: 500 11px "JetBrains Mono", monospace; color: var(--faint); }
@@ -338,7 +348,7 @@
   .table-wrap { padding: 16px 22px 30px; overflow-x: auto; }
   table { border-collapse: collapse; width: 100%; min-width: 900px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
   thead th {
-    text-align: left; padding: 10px 12px;
+    text-align: start; padding: 10px 12px;
     font: 600 11px "Archivo", sans-serif; letter-spacing: .07em; text-transform: uppercase;
     color: var(--muted); border-bottom: 1px solid var(--border);
     background: var(--surface-2); cursor: pointer; user-select: none; white-space: nowrap;
@@ -365,12 +375,13 @@
   }
   .scrim.open { opacity: 1; pointer-events: auto; }
   .drawer {
-    position: fixed; top: 0; right: 0; bottom: 0; width: min(520px, 100vw);
-    background: var(--surface); border-left: 1px solid var(--border);
+    position: fixed; top: 0; inset-inline-end: 0; bottom: 0; width: min(520px, 100vw);
+    background: var(--surface); border-inline-start: 1px solid var(--border);
     box-shadow: var(--shadow-lift);
     transform: translateX(102%); transition: transform .22s ease;
     display: flex; flex-direction: column;
   }
+  [dir="rtl"] .drawer { transform: translateX(-102%); }
   .drawer.open { transform: none; }
   @media (prefers-reduced-motion: reduce) {
     .drawer, .scrim { transition: none; }
@@ -411,7 +422,7 @@
   }
   .pr-item a { color: var(--accent); text-decoration: none; overflow-wrap: anywhere; }
   .pr-item a:hover { text-decoration: underline; }
-  .pr-item button { margin-left: auto; border: 0; background: none; color: var(--faint); font-size: 14px; }
+  .pr-item button { margin-inline-start: auto; border: 0; background: none; color: var(--faint); font-size: 14px; }
   .pr-item button:hover { color: var(--crit); }
 
   .drawer-foot {
@@ -423,7 +434,7 @@
     background: var(--surface-2); font-weight: 500;
   }
   .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
-  .btn.danger { color: var(--crit); border-color: var(--crit-soft); background: var(--crit-soft); margin-right: auto; }
+  .btn.danger { color: var(--crit); border-color: var(--crit-soft); background: var(--crit-soft); margin-inline-end: auto; }
 
   .comments { margin-top: 22px; border-top: 1px solid var(--border); padding-top: 16px; }
   .comments h3 { margin: 0 0 10px; font: 600 12px "Archivo", sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
@@ -496,14 +507,15 @@
 <div class="login-wrap" id="loginWrap" hidden>
   <form class="login-card" id="loginForm">
     <h1>SPHUB Tracker</h1>
-    <div class="sub">SP Tech Team</div>
+    <div class="sub" id="loginSub">SP Tech Team</div>
     <div class="login-err" id="loginErr" hidden></div>
-    <label for="loginEmail">Email</label>
+    <label for="loginEmail" id="lblLoginEmail">Email</label>
     <input id="loginEmail" type="email" autocomplete="username" required>
-    <label for="loginPw">Password</label>
+    <label for="loginPw" id="lblLoginPw">Password</label>
     <input id="loginPw" type="password" autocomplete="current-password" required>
     <button class="btn primary" id="loginBtn" type="submit">Sign in</button>
-    <p class="login-note">Team access only. Ask the SP tech team for credentials.</p>
+    <p class="login-note" id="loginNote">Team access only. Ask the SP tech team for credentials.</p>
+    <p class="login-note"><button type="button" class="btn-clear" id="btnLangLogin">عربي</button></p>
   </form>
 </div>
 
@@ -511,17 +523,18 @@
   <header>
     <div class="brand">
       <h1>SPHUB Tracker</h1>
-      <span class="sub">SP Tech Team</span>
+      <span class="sub" id="hdrSub">SP Tech Team</span>
     </div>
     <div class="stats" id="stats"></div>
     <div class="conn" id="conn"><span class="dot"></span><span id="connLabel">connecting…</span></div>
+    <button class="btn-team" id="btnLang">عربي</button>
     <button class="btn-team" id="btnTeam">Team</button>
     <button class="btn-team" id="btnPw">Password</button>
     <button class="btn-signout" id="btnSignout">Sign out</button>
   </header>
 
   <div class="toolbar">
-    <button class="btn-mine" id="fMine" aria-pressed="false">My tasks <span class="cnt" id="mineCount">0</span></button>
+    <button class="btn-mine" id="fMine" aria-pressed="false"><span id="mineLabel">My tasks</span> <span class="cnt" id="mineCount">0</span></button>
     <input type="search" id="fSearch" placeholder="Search title, ID, label, PR…">
     <select id="fType">
       <option value="">All types</option>
@@ -550,7 +563,7 @@
       <button id="viewBoard" class="on" role="tab" aria-selected="true">Board</button>
       <button id="viewTable" role="tab" aria-selected="false">Table</button>
     </div>
-    <button class="btn-mine" id="btnReports">CM reports <span class="cnt alert" id="repCount">0</span></button>
+    <button class="btn-mine" id="btnReports"><span id="repLabel">CM reports</span> <span class="cnt alert" id="repCount">0</span></button>
     <button class="btn-new" id="btnNew">+ New issue</button>
     <button class="btn-new" id="btnReport" hidden>Report an issue</button>
   </div>
@@ -560,8 +573,8 @@
 
 <div class="who-wrap" id="whoWrap" hidden>
   <div class="who-card">
-    <h2>Who are you?</h2>
-    <p>Pick yourself from the team list — used for reporter, comments, and edit history.</p>
+    <h2 id="whoTitle">Who are you?</h2>
+    <p id="whoDesc">Pick yourself from the team list — used for reporter, comments, and edit history.</p>
     <select id="whoSelect"></select>
     <button class="btn primary" id="whoConfirm">That's me</button>
   </div>
@@ -573,6 +586,198 @@
 
 <script>
 "use strict";
+
+/* ---------------- language ---------------- */
+const I18N = {
+  en: {
+    sub: "SP Tech Team",
+    connecting: "connecting…", loading: "loading…", live: "team sync on", syncerr: "sync error",
+    email: "Email", password: "Password", signin: "Sign in", signingin: "Signing in…",
+    loginNote: "Team access only. Ask the SP tech team for credentials.",
+    stOpen: "Open", stFlight: "In flight", stCrit: "Critical", stOver: "Overdue", stDone: "Done",
+    myTasks: "My tasks", searchPh: "Search title, ID, label, PR…",
+    allTypes: "All types", allPrios: "All priorities", allAssignees: "All assignees", allStatuses: "All statuses",
+    clearFilters: "Clear filters", board: "Board", table: "Table",
+    cmReports: "CM reports", newIssue: "+ New issue", reportIssue: "Report an issue",
+    team: "Team", pwBtn: "Password", signout: "Sign out",
+    ty_bug: "Bug", ty_enhancement: "Enhancement", ty_task: "Task",
+    pr_critical: "Critical", pr_high: "High", pr_medium: "Medium", pr_low: "Low",
+    st_backlog: "Backlog", st_todo: "To do", st_inprogress: "In progress", st_inreview: "In review", st_done: "Done",
+    ef_small: "Small — quick fix", ef_medium: "Medium — a day or two", ef_large: "Large — hard / multi-day", ef_xlarge: "X-Large — very hard / long haul",
+    fq_instant: "Instant (within ~5 min)", fq_hourly: "Hourly digest", fq_daily: "Daily digest", fq_off: "No emails",
+    emptyTitle: "No issues yet",
+    emptyBody: "Track SPHUB bugs and enhancements here — priorities, due dates, owners, and the PRs that ship them.",
+    emptyBtn: "Create the first issue",
+    noMatch: "No issues match the current filters.",
+    col_id: "ID", col_title: "Title", col_type: "Type", col_priority: "Priority", col_effort: "Effort",
+    col_status: "Status", col_assignee: "Assignee", col_dueDate: "Due", col_prs: "PRs", col_updatedAt: "Updated",
+    editIssue: "Edit issue", newIssueH: "New issue",
+    fTitle: "Title", fDesc: "Description", fType: "Type", fPriority: "Priority", fEffort: "Effort",
+    fStatus: "Status", fAssignee: "Assignee", fDue: "Due date", fLabels: "Labels", fPRs: "Linked PRs",
+    titlePh: "The required action in one statement — e.g. Fix session timeout on the SPHUB dashboard",
+    descPh: "What is broken / what should improve, where in SPHUB, acceptance criteria…",
+    labelsPh: "ui, auth, perf (comma-separated)", prPh: "PR URL or #123",
+    unassigned: "Unassigned", notSized: "Not sized",
+    add: "Add", comments: "Comments", noComments: "No comments yet.", post: "Post", commentPh: "Add a comment…",
+    reportedBy: "Reported by", created: "created", updated: "updated", byWord: "by", unknown: "unknown",
+    del: "Delete", cancel: "Cancel", close: "Close", saveChanges: "Save changes", createIssue: "Create issue",
+    delConfirm: "Delete {id} permanently?",
+    titleRequired: "A title is required", saved: "saved", createdT: "created", deleted: "deleted",
+    saveFailed: "Save failed: ", deleteFailed: "Delete failed: ",
+    whoTitle: "Who are you?",
+    whoDesc: "Pick yourself from the team list — used for reporter, comments, and edit history.",
+    whoBtn: "That's me", signedAs: "Signed in as ",
+    viewOnly: "View-only account — you can report issues, not change them",
+    pickFirst: "Pick who you are first (it appears when the team list loads)",
+    teamH: "Team", name: "Name", emailFq: "Email frequency", addMember: "Add member",
+    noMembers: "No team members yet — add the first one below.",
+    memberNamePh: "e.g. Yousef Alqufaidi", memberEmailPh: "name@pantheriq.sa",
+    teamNote: "Members appear in the assignee dropdown. When an issue is assigned to someone, they get an email at their chosen frequency (digests bundle multiple assignments into one email).",
+    needNameEmail: "A name and a valid email are required", memberAdded: " added", memberRemoved: "Member removed",
+    removeMember: "Remove {name} from the team?", removeFailed: "Remove failed: ", addFailed: "Add failed: ",
+    accountAccess: "Account access", accountEmail: "Account email", accountEmailPh: "login email of the account",
+    accessLevel: "Access level", roleEditor: "Editor — full control", roleViewer: "Viewer — read-only + can report",
+    setAccess: "Set access", you: "(you)", noRules: "No access rules yet.",
+    accessNote: "These rules apply to login accounts. Any account with no rule here is a viewer by default, so you only need entries for editors (or to pin someone explicitly to viewer). You cannot change your own access, and the last editor can never be removed.",
+    ownAccess: "You cannot change your own access", isNow: " is now ", changeFailed: "Change failed: ",
+    removeRule: "Remove the access rule for {email}? The account becomes a viewer.", ruleRemoved: "Access rule removed",
+    setTo: " set to ", enterAccountEmail: "Enter the account's login email",
+    pwH: "Change password", pwNote: "Changes the password for the account you are signed in as",
+    pwNew: "New password", pwNewPh: "At least 8 characters", pwRepeat: "Repeat new password",
+    pwSave: "Change password", pwSaving: "Changing…", pwShort: "Use at least 8 characters",
+    pwMismatch: "The two passwords don't match", pwChanged: "Password changed",
+    repH: "Reported issues from CMs",
+    repEditorNote: "Accepting a report creates a real issue in the Backlog; dismissing removes it from the pool.",
+    repEmpty: "No pending reports — the pool is clear.",
+    accept: "Accept as issue", dismiss: "Dismiss", repAnon: "anonymous", repByWord: "reported by",
+    acceptedToast: " created from the report", dismissedToast: "Report dismissed",
+    acceptFailed: "Accept failed: ", dismissFailed: "Dismiss failed: ",
+    rfH: "Report an issue",
+    rfNote: "Your report goes to the SP tech team for review. If accepted, it becomes a tracked issue.",
+    rfName: "Your name", rfNamePh: "So the team knows who to ask",
+    rfKind: "Type", rfBug: "Bug — something is broken", rfEnh: "Enhancement — something could be better",
+    rfTitle: "What needs to happen?", rfTitlePh: "One clear statement — e.g. Fix broken image upload in SPHUB news editor",
+    rfDesc: "Details", rfDescPh: "Where it happens, what you expected, steps to reproduce…",
+    rfSubmit: "Submit report", rfNeedTitle: "Describe what needs to happen",
+    rfThanks: "Report submitted — the team will review it", rfFailed: "Submit failed: ",
+    langBtn: "عربي",
+  },
+  ar: {
+    sub: "فريق SP التقني",
+    connecting: "جارٍ الاتصال…", loading: "جارٍ التحميل…", live: "مزامنة الفريق تعمل", syncerr: "خطأ في المزامنة",
+    email: "البريد الإلكتروني", password: "كلمة المرور", signin: "تسجيل الدخول", signingin: "جارٍ تسجيل الدخول…",
+    loginNote: "الدخول لأعضاء الفريق فقط. اطلب بيانات الدخول من فريق SP التقني.",
+    stOpen: "مفتوحة", stFlight: "قيد العمل", stCrit: "حرجة", stOver: "متأخرة", stDone: "منجزة",
+    myTasks: "مهامي", searchPh: "ابحث بالعنوان أو المعرّف أو الوسم…",
+    allTypes: "كل الأنواع", allPrios: "كل الأولويات", allAssignees: "كل المكلّفين", allStatuses: "كل الحالات",
+    clearFilters: "مسح التصفية", board: "اللوحة", table: "الجدول",
+    cmReports: "بلاغات المشرفين", newIssue: "+ مشكلة جديدة", reportIssue: "الإبلاغ عن مشكلة",
+    team: "الفريق", pwBtn: "كلمة المرور", signout: "تسجيل الخروج",
+    ty_bug: "خلل", ty_enhancement: "تحسين", ty_task: "مهمة",
+    pr_critical: "حرجة", pr_high: "عالية", pr_medium: "متوسطة", pr_low: "منخفضة",
+    st_backlog: "قائمة الانتظار", st_todo: "للتنفيذ", st_inprogress: "قيد التنفيذ", st_inreview: "قيد المراجعة", st_done: "منجزة",
+    ef_small: "صغير — إصلاح سريع", ef_medium: "متوسط — يوم أو يومان", ef_large: "كبير — صعب / عدة أيام", ef_xlarge: "كبير جدًا — صعب وطويل",
+    fq_instant: "فوري (خلال ~5 دقائق)", fq_hourly: "ملخص كل ساعة", fq_daily: "ملخص يومي", fq_off: "بدون رسائل",
+    emptyTitle: "لا توجد مشكلات بعد",
+    emptyBody: "تتبّع هنا أخطاء SPHUB وتحسيناته — الأولويات وتواريخ الاستحقاق والمسؤولين وطلبات الدمج.",
+    emptyBtn: "أنشئ أول مشكلة",
+    noMatch: "لا توجد مشكلات مطابقة للتصفية الحالية.",
+    col_id: "المعرّف", col_title: "العنوان", col_type: "النوع", col_priority: "الأولوية", col_effort: "الجهد",
+    col_status: "الحالة", col_assignee: "المكلّف", col_dueDate: "الاستحقاق", col_prs: "طلبات الدمج", col_updatedAt: "آخر تعديل",
+    editIssue: "تعديل المشكلة", newIssueH: "مشكلة جديدة",
+    fTitle: "العنوان", fDesc: "الوصف", fType: "النوع", fPriority: "الأولوية", fEffort: "الجهد",
+    fStatus: "الحالة", fAssignee: "المكلّف", fDue: "تاريخ الاستحقاق", fLabels: "الوسوم", fPRs: "طلبات الدمج المرتبطة",
+    titlePh: "الإجراء المطلوب في جملة واحدة — مثال: إصلاح انتهاء الجلسة في لوحة SPHUB",
+    descPh: "ما المعطّل / ما الذي يجب تحسينه، وأين في SPHUB، ومعايير القبول…",
+    labelsPh: "واجهة، صلاحيات، أداء (مفصولة بفواصل)", prPh: "رابط طلب الدمج أو #123",
+    unassigned: "غير مُسند", notSized: "غير مقدّر",
+    add: "إضافة", comments: "التعليقات", noComments: "لا توجد تعليقات بعد.", post: "نشر", commentPh: "أضف تعليقًا…",
+    reportedBy: "أبلغ عنها", created: "أُنشئت", updated: "عُدّلت", byWord: "بواسطة", unknown: "غير معروف",
+    del: "حذف", cancel: "إلغاء", close: "إغلاق", saveChanges: "حفظ التغييرات", createIssue: "إنشاء المشكلة",
+    delConfirm: "حذف {id} نهائيًا؟",
+    titleRequired: "العنوان مطلوب", saved: "حُفظت", createdT: "أُنشئت", deleted: "حُذفت",
+    saveFailed: "فشل الحفظ: ", deleteFailed: "فشل الحذف: ",
+    whoTitle: "من أنت؟",
+    whoDesc: "اختر اسمك من قائمة الفريق — يُستخدم للإبلاغ والتعليقات وسجل التعديلات.",
+    whoBtn: "هذا أنا", signedAs: "تم الدخول باسم ",
+    viewOnly: "حساب عرض فقط — يمكنك الإبلاغ عن المشكلات دون تعديلها",
+    pickFirst: "اختر هويتك أولًا (تظهر عند تحميل قائمة الفريق)",
+    teamH: "الفريق", name: "الاسم", emailFq: "تواتر الرسائل", addMember: "إضافة عضو",
+    noMembers: "لا يوجد أعضاء بعد — أضف أول عضو أدناه.",
+    memberNamePh: "مثال: يوسف القفيدي", memberEmailPh: "name@pantheriq.sa",
+    teamNote: "يظهر الأعضاء في قائمة الإسناد. عند إسناد مشكلة لأحدهم يصله بريد حسب التواتر الذي اختاره (الملخصات تجمع عدة إسنادات في رسالة واحدة).",
+    needNameEmail: "الاسم وبريد إلكتروني صحيح مطلوبان", memberAdded: " أُضيف", memberRemoved: "أُزيل العضو",
+    removeMember: "إزالة {name} من الفريق؟", removeFailed: "فشلت الإزالة: ", addFailed: "فشلت الإضافة: ",
+    accountAccess: "صلاحيات الحسابات", accountEmail: "بريد الحساب", accountEmailPh: "البريد المستخدم لتسجيل الدخول",
+    accessLevel: "مستوى الصلاحية", roleEditor: "محرر — تحكم كامل", roleViewer: "مشاهد — عرض فقط + إبلاغ",
+    setAccess: "تعيين الصلاحية", you: "(أنت)", noRules: "لا توجد قواعد صلاحية بعد.",
+    accessNote: "تنطبق هذه القواعد على حسابات الدخول. أي حساب بلا قاعدة هنا يُعد مشاهدًا افتراضيًا، فلا تحتاج إلا لإدخال المحررين. لا يمكنك تغيير صلاحيتك، ولا يمكن إزالة آخر محرر.",
+    ownAccess: "لا يمكنك تغيير صلاحيتك", isNow: " أصبح ", changeFailed: "فشل التغيير: ",
+    removeRule: "إزالة قاعدة الصلاحية لـ {email}؟ سيصبح الحساب مشاهدًا.", ruleRemoved: "أُزيلت قاعدة الصلاحية",
+    setTo: " عُيّن إلى ", enterAccountEmail: "أدخل بريد تسجيل الدخول للحساب",
+    pwH: "تغيير كلمة المرور", pwNote: "يغيّر كلمة مرور الحساب الذي سجّلت الدخول به",
+    pwNew: "كلمة المرور الجديدة", pwNewPh: "8 أحرف على الأقل", pwRepeat: "أعد إدخال كلمة المرور الجديدة",
+    pwSave: "تغيير كلمة المرور", pwSaving: "جارٍ التغيير…", pwShort: "استخدم 8 أحرف على الأقل",
+    pwMismatch: "كلمتا المرور غير متطابقتين", pwChanged: "تم تغيير كلمة المرور",
+    repH: "المشكلات المبلّغة من المشرفين",
+    repEditorNote: "قبول البلاغ ينشئ مشكلة حقيقية في قائمة الانتظار؛ الرفض يزيله من القائمة.",
+    repEmpty: "لا توجد بلاغات معلّقة — القائمة فارغة.",
+    accept: "قبول كمشكلة", dismiss: "رفض", repAnon: "مجهول", repByWord: "أبلغ عنها",
+    acceptedToast: " أُنشئت من البلاغ", dismissedToast: "رُفض البلاغ",
+    acceptFailed: "فشل القبول: ", dismissFailed: "فشل الرفض: ",
+    rfH: "الإبلاغ عن مشكلة",
+    rfNote: "يذهب بلاغك إلى فريق SP التقني للمراجعة. إذا قُبل يصبح مشكلة متتبَّعة.",
+    rfName: "اسمك", rfNamePh: "ليعرف الفريق من يسأل",
+    rfKind: "النوع", rfBug: "خلل — شيء معطّل", rfEnh: "تحسين — شيء يمكن أن يكون أفضل",
+    rfTitle: "ما الذي يجب أن يحدث؟", rfTitlePh: "جملة واحدة واضحة — مثال: إصلاح رفع الصور في محرر أخبار SPHUB",
+    rfDesc: "التفاصيل", rfDescPh: "أين تحدث، وماذا توقعت، وخطوات إعادة التكرار…",
+    rfSubmit: "إرسال البلاغ", rfNeedTitle: "صف ما الذي يجب أن يحدث",
+    rfThanks: "أُرسل البلاغ — سيراجعه الفريق", rfFailed: "فشل الإرسال: ",
+    langBtn: "English",
+  },
+};
+
+let lang = "en";
+try { lang = localStorage.getItem("sphub-tracker-lang") === "ar" ? "ar" : "en"; } catch (e) {}
+
+const t = k => (I18N[lang] && I18N[lang][k]) !== undefined ? I18N[lang][k] : (I18N.en[k] !== undefined ? I18N.en[k] : k);
+const typeName = k => t("ty_" + k) === "ty_" + k ? k : t("ty_" + k);
+const prName = k => t("pr_" + k) === "pr_" + k ? k : t("pr_" + k);
+const stName = k => t("st_" + k);
+const effName = k => t("ef_" + k);
+const dateLocale = () => (lang === "ar" ? "ar" : undefined);
+
+function toggleLang() {
+  lang = lang === "ar" ? "en" : "ar";
+  try { localStorage.setItem("sphub-tracker-lang", lang); } catch (e) {}
+  applyLang();
+}
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+  const ph = (id, text) => { const el = document.getElementById(id); if (el) el.placeholder = text; };
+  set("btnLang", t("langBtn")); set("btnLangLogin", t("langBtn"));
+  set("loginSub", t("sub")); set("hdrSub", t("sub"));
+  set("lblLoginEmail", t("email")); set("lblLoginPw", t("password"));
+  set("loginBtn", t("signin")); set("loginNote", t("loginNote"));
+  set("mineLabel", t("myTasks")); set("repLabel", t("cmReports"));
+  ph("fSearch", t("searchPh"));
+  set("clearFilters", t("clearFilters"));
+  set("viewBoard", t("board")); set("viewTable", t("table"));
+  set("btnNew", t("newIssue")); set("btnReport", t("reportIssue"));
+  set("btnTeam", t("team")); set("btnPw", t("pwBtn")); set("btnSignout", t("signout"));
+  set("whoTitle", t("whoTitle")); set("whoDesc", t("whoDesc")); set("whoConfirm", t("whoBtn"));
+  const opt = (v, label) => '<option value="' + v + '">' + label + "</option>";
+  const keepSel = (sel, html) => { const v = sel.value; sel.innerHTML = html; sel.value = v; };
+  keepSel($("#fType"), opt("", t("allTypes")) + Object.keys(TYPES).map(k => opt(k, typeName(k))).join(""));
+  keepSel($("#fPriority"), opt("", t("allPrios")) + PRIORITIES.map(p => opt(p, prName(p))).join(""));
+  keepSel($("#fStatus"), opt("", t("allStatuses")) + STATUSES.map(s => opt(s.key, stName(s.key))).join(""));
+  if (lastConn) setConn(lastConn.mode, lastConn.key);
+  else set("connLabel", t("connecting"));
+  render();
+}
 
 /* ---------------- supabase backend ---------------- */
 const SUPA_URL = "https://qqhayadsnchhawtbmsqe.supabase.co";
@@ -749,7 +954,7 @@ document.getElementById("loginForm").addEventListener("submit", async e => {
   const errEl = document.getElementById("loginErr");
   errEl.hidden = true;
   btn.disabled = true;
-  btn.textContent = "Signing in…";
+  btn.textContent = t("signingin");
   try {
     const s = await authRequest("password", {
       email: document.getElementById("loginEmail").value.trim(),
@@ -762,7 +967,7 @@ document.getElementById("loginForm").addEventListener("submit", async e => {
     errEl.hidden = false;
   } finally {
     btn.disabled = false;
-    btn.textContent = "Sign in";
+    btn.textContent = t("signin");
   }
 });
 
@@ -770,12 +975,14 @@ document.getElementById("btnSignout").addEventListener("click", signOut);
 
 /* ---------------- sync ---------------- */
 let pollTimer = null;
+let lastConn = null;
 
-function setConn(mode, label) {
+function setConn(mode, key) {
+  lastConn = { mode, key };
   const el = document.getElementById("conn");
   el.classList.remove("live", "err");
   if (mode) el.classList.add(mode);
-  document.getElementById("connLabel").textContent = label;
+  document.getElementById("connLabel").textContent = t(key);
 }
 
 async function refresh(showErrors) {
@@ -784,11 +991,11 @@ async function refresh(showErrors) {
     issues = iss;
     members = mem;
     reports = rep;
-    setConn("live", "team sync on");
+    setConn("live", "live");
     render();
     ensureIdentity();
   } catch (err) {
-    setConn("err", "sync error");
+    setConn("err", "syncerr");
     if (showErrors) toast(err.message);
   }
 }
@@ -806,7 +1013,7 @@ document.addEventListener("visibilitychange", () => {
 
 function enterApp() {
   showApp();
-  setConn("", "loading…");
+  setConn("", "loading");
   fetchRole().then(() => refresh(true));
   startPolling();
 }
@@ -851,7 +1058,7 @@ document.getElementById("whoConfirm").addEventListener("click", () => {
   me = { name: m.name, email: m.email };
   try { localStorage.setItem("sphub-tracker-me", JSON.stringify(me)); } catch (e) {}
   $("#whoWrap").hidden = true;
-  toast("Signed in as " + m.name);
+  toast(t("signedAs") + m.name);
 });
 
 /* ---------------- constants ---------------- */
@@ -882,12 +1089,12 @@ const fmtDate = iso => {
   if (!iso) return "";
   const d = new Date(iso + (iso.length === 10 ? "T00:00:00" : ""));
   if (isNaN(d)) return iso;
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return d.toLocaleDateString(dateLocale(), { month: "short", day: "numeric" });
 };
 const fmtDateTime = ts => {
   if (!ts) return "";
   const d = new Date(ts);
-  return isNaN(d) ? "" : d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  return isNaN(d) ? "" : d.toLocaleString(dateLocale(), { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 };
 const initials = name => (name || "?").trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
 const isOverdue = it => it.dueDate && it.status !== "done" && it.dueDate < todayISO();
@@ -970,18 +1177,18 @@ function renderStats() {
   const crit = open.filter(i => i.priority === "critical");
   const wip = issues.filter(i => i.status === "inprogress" || i.status === "inreview");
   $("#stats").innerHTML =
-    '<span class="stat">Open <b>' + open.length + "</b></span>" +
-    '<span class="stat">In flight <b>' + wip.length + "</b></span>" +
-    '<span class="stat' + (crit.length ? " alert" : "") + '">Critical <b>' + crit.length + "</b></span>" +
-    '<span class="stat' + (overdue.length ? " alert" : "") + '">Overdue <b>' + overdue.length + "</b></span>" +
-    '<span class="stat">Done <b>' + (issues.length - open.length) + "</b></span>";
+    '<span class="stat">' + t("stOpen") + " <b>" + open.length + "</b></span>" +
+    '<span class="stat">' + t("stFlight") + " <b>" + wip.length + "</b></span>" +
+    '<span class="stat' + (crit.length ? " alert" : "") + '">' + t("stCrit") + " <b>" + crit.length + "</b></span>" +
+    '<span class="stat' + (overdue.length ? " alert" : "") + '">' + t("stOver") + " <b>" + overdue.length + "</b></span>" +
+    '<span class="stat">' + t("stDone") + " <b>" + (issues.length - open.length) + "</b></span>";
 }
 
 function renderAssigneeFilter() {
   const sel = $("#fAssignee");
   const cur = filters.assignee;
   const names = [...new Set(issues.map(i => i.assignee).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-  sel.innerHTML = '<option value="">All assignees</option>' +
+  sel.innerHTML = '<option value="">' + t("allAssignees") + "</option>" +
     names.map(n => '<option value="' + esc(n) + '"' + (n === cur ? " selected" : "") + ">" + esc(n) + "</option>").join("");
 }
 
@@ -1002,9 +1209,9 @@ function cardHTML(it) {
   return '<article class="card p-' + esc(it.priority) + '" draggable="' + (role === "editor" ? "true" : "false") + '" data-id="' + esc(it.id) + '" tabindex="0" ' +
     'aria-label="' + esc(it.id + " " + it.title) + '">' +
     '<div class="card-top">' +
-    '<span class="chip t-' + esc(it.type) + '">' + esc(TYPES[it.type] || it.type) + "</span>" +
-    '<span class="chip pr-' + esc(it.priority) + '">' + esc(it.priority) + "</span>" +
-    (it.effort && EFFORTS[it.effort] ? '<span class="chip e-' + esc(it.effort) + '" title="' + esc(EFFORTS[it.effort].name) + '">' + EFFORTS[it.effort].short + "</span>" : "") +
+    '<span class="chip t-' + esc(it.type) + '">' + esc(typeName(it.type)) + "</span>" +
+    '<span class="chip pr-' + esc(it.priority) + '">' + esc(prName(it.priority)) + "</span>" +
+    (it.effort && EFFORTS[it.effort] ? '<span class="chip e-' + esc(it.effort) + '" title="' + esc(effName(it.effort)) + '">' + EFFORTS[it.effort].short + "</span>" : "") +
     "</div>" +
     '<p class="card-title">' + esc(it.title) + "</p>" +
     desc +
@@ -1015,9 +1222,10 @@ function renderBoard() {
   const list = filtered();
   if (!issues.length) {
     $("#main").innerHTML =
-      '<div class="empty-all"><h2>No issues yet</h2>' +
-      "<p>Track SPHUB bugs and enhancements here — priorities, due dates, owners, and the PRs that ship them.</p>" +
-      '<p><button class="btn primary" onclick="openDrawer(null)">Create the first issue</button></p></div>';
+      '<div class="empty-all"><h2>' + t("emptyTitle") + "</h2>" +
+      "<p>" + t("emptyBody") + "</p>" +
+      (role === "editor" ? '<p><button class="btn primary" onclick="openDrawer(null)">' + t("emptyBtn") + "</button></p>" : "") +
+      "</div>";
     return;
   }
   const sorter = (a, b) =>
@@ -1027,7 +1235,7 @@ function renderBoard() {
     const items = list.filter(i => i.status === st.key).sort(sorter);
     return '<section class="col" data-status="' + st.key + '">' +
       '<div class="col-head"><span class="sdot" style="width:8px;height:8px;border-radius:50%;background:' + st.dot + '"></span>' +
-      esc(st.name) + '<span class="count">' + items.length + "</span></div>" +
+      esc(stName(st.key)) + '<span class="count">' + items.length + "</span></div>" +
       '<div class="col-body">' +
       (items.length ? items.map(cardHTML).join("") : '<div class="empty-col">—</div>') +
       "</div></section>";
@@ -1058,7 +1266,7 @@ function wireBoard() {
 }
 
 function moveIssue(id, status) {
-  if (role !== "editor") { toast("View-only account — you can report issues, not change them"); return; }
+  if (role !== "editor") { toast(t("viewOnly")); return; }
   const it = issues.find(i => i.id === id);
   if (!it || it.status === status) return;
   it.status = status;
@@ -1066,14 +1274,11 @@ function moveIssue(id, status) {
   it.updatedBy = myName();
   const data = Object.assign({}, it);
   delete data.id;
-  store.save(id, data).catch(err => toast("Save failed: " + err.message));
+  store.save(id, data).catch(err => toast(t("saveFailed") + err.message));
   render();
 }
 
-const TABLE_COLS = [
-  ["id", "ID"], ["title", "Title"], ["type", "Type"], ["priority", "Priority"], ["effort", "Effort"],
-  ["status", "Status"], ["assignee", "Assignee"], ["dueDate", "Due"], ["prs", "PRs"], ["updatedAt", "Updated"],
-];
+const TABLE_COLS = ["id", "title", "type", "priority", "effort", "status", "assignee", "dueDate", "prs", "updatedAt"];
 
 function renderTable() {
   const list = filtered().slice().sort((a, b) => {
@@ -1090,8 +1295,8 @@ function renderTable() {
     else { va = a[sortKey] || ""; vb = b[sortKey] || ""; }
     return (va < vb ? -1 : va > vb ? 1 : 0) * sortDir;
   });
-  const head = TABLE_COLS.map(([k, label]) =>
-    "<th data-key=\"" + k + "\">" + label + (sortKey === k ? ' <span class="arrow">' + (sortDir === 1 ? "▲" : "▼") + "</span>" : "") + "</th>"
+  const head = TABLE_COLS.map(k =>
+    "<th data-key=\"" + k + "\">" + t("col_" + k) + (sortKey === k ? ' <span class="arrow">' + (sortDir === 1 ? "▲" : "▼") + "</span>" : "") + "</th>"
   ).join("");
   const rows = list.map(it => {
     const st = STATUSES.find(s => s.key === it.status) || STATUSES[0];
@@ -1099,17 +1304,17 @@ function renderTable() {
       '<td class="mono">' + esc(it.id) + "</td>" +
       '<td class="title-cell">' + esc(it.title) +
       (it.description ? '<div class="row-desc">' + esc(it.description) + "</div>" : "") + "</td>" +
-      '<td><span class="chip t-' + esc(it.type) + '">' + esc(TYPES[it.type] || it.type) + "</span></td>" +
-      '<td><span class="chip pr-' + esc(it.priority) + '">' + esc(it.priority) + "</span></td>" +
-      "<td>" + (it.effort && EFFORTS[it.effort] ? '<span class="chip e-' + esc(it.effort) + '" title="' + esc(EFFORTS[it.effort].name) + '">' + EFFORTS[it.effort].short + "</span>" : '<span style="color:var(--faint)">—</span>') + "</td>" +
-      '<td><span class="status-pill"><span class="sdot" style="background:' + st.dot + '"></span>' + esc(st.name) + "</span></td>" +
+      '<td><span class="chip t-' + esc(it.type) + '">' + esc(typeName(it.type)) + "</span></td>" +
+      '<td><span class="chip pr-' + esc(it.priority) + '">' + esc(prName(it.priority)) + "</span></td>" +
+      "<td>" + (it.effort && EFFORTS[it.effort] ? '<span class="chip e-' + esc(it.effort) + '" title="' + esc(effName(it.effort)) + '">' + EFFORTS[it.effort].short + "</span>" : '<span style="color:var(--faint)">—</span>') + "</td>" +
+      '<td><span class="status-pill"><span class="sdot" style="background:' + st.dot + '"></span>' + esc(stName(st.key)) + "</span></td>" +
       "<td>" + (it.assignee ? '<span class="avatar" style="margin-right:6px">' + esc(initials(it.assignee)) + "</span>" + esc(it.assignee) : '<span style="color:var(--faint)">—</span>') + "</td>" +
       '<td class="mono' + (isOverdue(it) ? '" style="color:var(--overdue)' : "") + '">' + (it.dueDate ? fmtDate(it.dueDate) : "—") + "</td>" +
       '<td class="mono">' + ((it.prs || []).length || "—") + "</td>" +
       '<td class="mono">' + fmtDateTime(it.updatedAt || it.createdAt) + "</td></tr>";
   }).join("");
   $("#main").innerHTML = '<div class="table-wrap"><table><thead><tr>' + head + "</tr></thead><tbody>" +
-    (rows || '<tr><td colspan="10" style="text-align:center;color:var(--faint);padding:26px">No issues match the current filters.</td></tr>') +
+    (rows || '<tr><td colspan="10" style="text-align:center;color:var(--faint);padding:26px">' + t("noMatch") + "</td></tr>") +
     "</tbody></table></div>";
   document.querySelectorAll("thead th").forEach(th => th.addEventListener("click", () => {
     const k = th.dataset.key;
@@ -1133,51 +1338,51 @@ function openDrawer(id) {
     '<div class="comment"><span class="avatar">' + esc(initials(c.author)) + '</span><div class="body">' +
     '<div class="who"><b>' + esc(c.author) + '</b> <span class="when">' + esc(fmtDateTime(c.at)) + "</span></div>" +
     "<p>" + esc(c.text) + "</p></div></div>"
-  ).join("") || '<p style="color:var(--faint);font-size:13px">No comments yet.</p>';
+  ).join("") || '<p style="color:var(--faint);font-size:13px">' + t("noComments") + "</p>";
 
   $("#drawer").innerHTML =
     '<div class="drawer-head">' +
     (it ? '<span class="card-id">' + esc(it.id) + "</span>" : "") +
-    "<h2>" + (it ? "Edit issue" : "New issue") + "</h2>" +
+    "<h2>" + (it ? t("editIssue") : t("newIssueH")) + "</h2>" +
     '<button class="icon-btn" id="dClose" aria-label="Close">✕</button></div>' +
     '<div class="drawer-body">' +
-    '<div class="field"><label for="dTitle">Title</label><input id="dTitle" value="' + esc(it ? it.title : "") + '" placeholder="The required action in one statement — e.g. Fix session timeout on the SPHUB dashboard"></div>' +
-    '<div class="field"><label for="dDesc">Description</label><textarea id="dDesc" placeholder="What is broken / what should improve, where in SPHUB, acceptance criteria…">' + esc(it ? it.description : "") + "</textarea></div>" +
+    '<div class="field"><label for="dTitle">' + t("fTitle") + '</label><input id="dTitle" value="' + esc(it ? it.title : "") + '" placeholder="' + esc(t("titlePh")) + '"></div>' +
+    '<div class="field"><label for="dDesc">' + t("fDesc") + '</label><textarea id="dDesc" placeholder="' + esc(t("descPh")) + '">' + esc(it ? it.description : "") + "</textarea></div>" +
     '<div class="grid2">' +
-    '<div class="field"><label for="dType">Type</label><select id="dType">' +
-    Object.entries(TYPES).map(([k, v]) => '<option value="' + k + '"' + (it && it.type === k ? " selected" : "") + ">" + v + "</option>").join("") +
+    '<div class="field"><label for="dType">' + t("fType") + '</label><select id="dType">' +
+    Object.keys(TYPES).map(k => '<option value="' + k + '"' + (it && it.type === k ? " selected" : "") + ">" + typeName(k) + "</option>").join("") +
     "</select></div>" +
-    '<div class="field"><label for="dPriority">Priority</label><select id="dPriority">' +
-    PRIORITIES.map(p => '<option value="' + p + '"' + ((it ? it.priority : "medium") === p ? " selected" : "") + ">" + p[0].toUpperCase() + p.slice(1) + "</option>").join("") +
+    '<div class="field"><label for="dPriority">' + t("fPriority") + '</label><select id="dPriority">' +
+    PRIORITIES.map(p => '<option value="' + p + '"' + ((it ? it.priority : "medium") === p ? " selected" : "") + ">" + prName(p) + "</option>").join("") +
     "</select></div>" +
-    '<div class="field"><label for="dStatus">Status</label><select id="dStatus">' +
-    STATUSES.map(s => '<option value="' + s.key + '"' + ((it ? it.status : "todo") === s.key ? " selected" : "") + ">" + s.name + "</option>").join("") +
+    '<div class="field"><label for="dStatus">' + t("fStatus") + '</label><select id="dStatus">' +
+    STATUSES.map(s => '<option value="' + s.key + '"' + ((it ? it.status : "todo") === s.key ? " selected" : "") + ">" + stName(s.key) + "</option>").join("") +
     "</select></div>" +
-    '<div class="field"><label for="dAssignee">Assignee</label><select id="dAssignee">' +
-    '<option value="">Unassigned</option>' +
+    '<div class="field"><label for="dAssignee">' + t("fAssignee") + '</label><select id="dAssignee">' +
+    '<option value="">' + t("unassigned") + "</option>" +
     members.map(m => '<option value="' + esc(m.email) + '"' + (it && it.assigneeEmail === m.email ? " selected" : "") + ">" + esc(m.name) + "</option>").join("") +
     "</select></div>" +
-    '<div class="field"><label for="dEffort">Effort</label><select id="dEffort">' +
-    '<option value="">Not sized</option>' +
-    Object.entries(EFFORTS).map(([k, v]) => '<option value="' + k + '"' + (it && it.effort === k ? " selected" : "") + ">" + v.name + "</option>").join("") +
+    '<div class="field"><label for="dEffort">' + t("fEffort") + '</label><select id="dEffort">' +
+    '<option value="">' + t("notSized") + "</option>" +
+    Object.keys(EFFORTS).map(k => '<option value="' + k + '"' + (it && it.effort === k ? " selected" : "") + ">" + effName(k) + "</option>").join("") +
     "</select></div>" +
-    '<div class="field"><label for="dDue">Due date</label><input type="date" id="dDue" value="' + esc(it ? it.dueDate || "" : "") + '"></div>' +
-    '<div class="field"><label for="dLabels">Labels</label><input id="dLabels" value="' + esc(it && it.labels ? it.labels.join(", ") : "") + '" placeholder="ui, auth, perf (comma-separated)"></div>' +
+    '<div class="field"><label for="dDue">' + t("fDue") + '</label><input type="date" id="dDue" value="' + esc(it ? it.dueDate || "" : "") + '"></div>' +
+    '<div class="field"><label for="dLabels">' + t("fLabels") + '</label><input id="dLabels" value="' + esc(it && it.labels ? it.labels.join(", ") : "") + '" placeholder="' + esc(t("labelsPh")) + '"></div>' +
     "</div>" +
-    '<div class="field"><label for="dPrInput">Linked PRs</label>' +
-    '<div class="pr-row"><input id="dPrInput" placeholder="PR URL or #123"><button class="btn" id="dPrAdd">Add</button></div>' +
+    '<div class="field"><label for="dPrInput">' + t("fPRs") + "</label>" +
+    '<div class="pr-row"><input id="dPrInput" placeholder="' + esc(t("prPh")) + '"><button class="btn" id="dPrAdd">' + t("add") + "</button></div>" +
     '<div class="pr-list" id="dPrList"></div></div>' +
     (it ?
-      '<div class="comments"><h3>Comments</h3>' + comments +
-      '<div class="comment-form"><textarea id="dComment" placeholder="Add a comment…"></textarea><button class="btn" id="dCommentAdd">Post</button></div></div>' +
-      '<div class="meta-line">Reported by ' + esc(it.reporter || "unknown") + " · created " + esc(fmtDateTime(it.createdAt)) +
-      (it.updatedAt ? " · updated " + esc(fmtDateTime(it.updatedAt)) + (it.updatedBy ? " by " + esc(it.updatedBy) : "") : "") + "</div>"
+      '<div class="comments"><h3>' + t("comments") + "</h3>" + comments +
+      '<div class="comment-form"><textarea id="dComment" placeholder="' + esc(t("commentPh")) + '"></textarea><button class="btn" id="dCommentAdd">' + t("post") + "</button></div></div>" +
+      '<div class="meta-line">' + t("reportedBy") + " " + esc(it.reporter || t("unknown")) + " · " + t("created") + " " + esc(fmtDateTime(it.createdAt)) +
+      (it.updatedAt ? " · " + t("updated") + " " + esc(fmtDateTime(it.updatedAt)) + (it.updatedBy ? " " + t("byWord") + " " + esc(it.updatedBy) : "") : "") + "</div>"
       : "") +
     "</div>" +
     '<div class="drawer-foot">' +
-    (it ? '<button class="btn danger" id="dDelete">Delete</button>' : "") +
-    '<button class="btn" id="dCancel" style="margin-left:auto">Cancel</button>' +
-    '<button class="btn primary" id="dSave">' + (it ? "Save changes" : "Create issue") + "</button></div>";
+    (it ? '<button class="btn danger" id="dDelete">' + t("del") + "</button>" : "") +
+    '<button class="btn" id="dCancel" style="margin-inline-start:auto">' + t("cancel") + "</button>" +
+    '<button class="btn primary" id="dSave">' + (it ? t("saveChanges") : t("createIssue")) + "</button></div>";
 
   renderPRList();
   $("#scrim").classList.add("open");
@@ -1192,7 +1397,7 @@ function openDrawer(id) {
       if (el) el.hidden = true;
     });
     document.querySelectorAll("#dPrList button").forEach(b => { b.hidden = true; });
-    $("#dCancel").textContent = "Close";
+    $("#dCancel").textContent = t("close");
   }
 
   $("#dClose").onclick = closeDrawer;
@@ -1202,8 +1407,8 @@ function openDrawer(id) {
   $("#dSave").onclick = saveDrawer;
   if (it) {
     $("#dDelete").onclick = () => {
-      if (!confirm("Delete " + it.id + " permanently?")) return;
-      store.remove(it.id).then(() => toast(it.id + " deleted")).catch(err => toast("Delete failed: " + err.message));
+      if (!confirm(t("delConfirm").replace("{id}", it.id))) return;
+      store.remove(it.id).then(() => toast(it.id + " " + t("deleted"))).catch(err => toast(t("deleteFailed") + err.message));
       issues = issues.filter(i => i.id !== it.id);
       closeDrawer(); render();
     };
@@ -1216,7 +1421,7 @@ function openDrawer(id) {
       cur.updatedBy = myName();
       const data = Object.assign({}, cur);
       delete data.id;
-      store.save(it.id, data).catch(err => toast("Save failed: " + err.message));
+      store.save(it.id, data).catch(err => toast(t("saveFailed") + err.message));
       openDrawer(it.id);
     };
   }
@@ -1240,7 +1445,7 @@ function renderPRList() {
 
 function saveDrawer() {
   const title = $("#dTitle").value.trim();
-  if (!title) { toast("A title is required"); $("#dTitle").focus(); return; }
+  if (!title) { toast(t("titleRequired")); $("#dTitle").focus(); return; }
   const pending = $("#dPrInput").value.trim();
   if (pending) drawerPRs.push(pending);
   const existing = drawerId ? issues.find(i => i.id === drawerId) : null;
@@ -1267,8 +1472,8 @@ function saveDrawer() {
   };
   const id = drawerId || nextId();
   store.save(id, data).then(
-    () => toast(drawerId ? id + " saved" : id + " created"),
-    err => toast("Save failed: " + err.message)
+    () => toast(id + " " + (drawerId ? t("saved") : t("createdT"))),
+    err => toast(t("saveFailed") + err.message)
   );
   const idx = issues.findIndex(i => i.id === id);
   const merged = Object.assign({ id }, data);
@@ -1284,16 +1489,11 @@ function closeDrawer() {
 }
 
 /* ---------------- team drawer ---------------- */
-const FREQS = [
-  ["instant", "Instant (within ~5 min)"],
-  ["hourly", "Hourly digest"],
-  ["daily", "Daily digest"],
-  ["off", "No emails"],
-];
+const FREQS = ["instant", "hourly", "daily", "off"];
 
 function freqSelectHTML(id, current) {
-  return '<select id="' + id + '" aria-label="Email frequency">' +
-    FREQS.map(([k, v]) => '<option value="' + k + '"' + (current === k ? " selected" : "") + ">" + v + "</option>").join("") +
+  return '<select id="' + id + '" aria-label="' + esc(t("emailFq")) + '">' +
+    FREQS.map(k => '<option value="' + k + '"' + (current === k ? " selected" : "") + ">" + t("fq_" + k) + "</option>").join("") +
     "</select>";
 }
 
@@ -1306,14 +1506,14 @@ async function openTeamDrawer() {
   const accessRows = rolesList.map((r, i) => {
     const self = r.email.toLowerCase() === myEmail;
     return '<div class="member-row">' +
-      '<div class="member-info"><div class="em">' + esc(r.email) + (self ? ' <span style="color:var(--accent)">(you)</span>' : "") + "</div></div>" +
-      '<select id="aRole-' + i + '"' + (self ? " disabled title=\"You cannot change your own access\"" : "") + ">" +
-      '<option value="editor"' + (r.role === "editor" ? " selected" : "") + ">Editor</option>" +
-      '<option value="viewer"' + (r.role === "viewer" ? " selected" : "") + ">Viewer</option>" +
+      '<div class="member-info"><div class="em">' + esc(r.email) + (self ? ' <span style="color:var(--accent)">' + t("you") + "</span>" : "") + "</div></div>" +
+      '<select id="aRole-' + i + '"' + (self ? ' disabled title="' + esc(t("ownAccess")) + '"' : "") + ">" +
+      '<option value="editor"' + (r.role === "editor" ? " selected" : "") + ">" + t("roleEditor") + "</option>" +
+      '<option value="viewer"' + (r.role === "viewer" ? " selected" : "") + ">" + t("roleViewer") + "</option>" +
       "</select>" +
       (self ? "" : '<button class="rm" data-roleemail="' + esc(r.email) + '" aria-label="Remove access rule">✕</button>') +
       "</div>";
-  }).join("") || '<p style="color:var(--faint);font-size:13px">No access rules yet.</p>';
+  }).join("") || '<p style="color:var(--faint);font-size:13px">' + t("noRules") + "</p>";
 
   const rows = members.map((m, i) =>
     '<div class="member-row">' +
@@ -1322,28 +1522,28 @@ async function openTeamDrawer() {
     freqSelectHTML("mFreq-" + i, m.notify_frequency) +
     '<button class="rm" data-email="' + esc(m.email) + '" aria-label="Remove member">✕</button>' +
     "</div>"
-  ).join("") || '<p style="color:var(--faint);font-size:13px">No team members yet — add the first one below.</p>';
+  ).join("") || '<p style="color:var(--faint);font-size:13px">' + t("noMembers") + "</p>";
 
   $("#drawer").innerHTML =
-    '<div class="drawer-head"><h2>Team</h2>' +
+    '<div class="drawer-head"><h2>' + t("teamH") + "</h2>" +
     '<button class="icon-btn" id="dClose" aria-label="Close">✕</button></div>' +
     '<div class="drawer-body">' + rows +
     '<div class="team-add">' +
-    '<div class="field"><label for="mName">Name</label><input id="mName" placeholder="e.g. Yousef Alqufaidi"></div>' +
-    '<div class="field"><label for="mEmail">Email</label><input id="mEmail" type="email" placeholder="name@saudipanther.sa"></div>' +
-    '<div class="field"><label for="mFreqNew">Email frequency</label>' + freqSelectHTML("mFreqNew", "instant") + "</div>" +
-    '<button class="btn primary" id="mAdd">Add member</button></div>' +
-    '<p class="team-note">Members appear in the assignee dropdown. When an issue is assigned to someone, they get an email at their chosen frequency (digests bundle multiple assignments into one email).</p>' +
-    '<div class="team-add"><div class="field"><label>Account access</label></div>' +
+    '<div class="field"><label for="mName">' + t("name") + '</label><input id="mName" placeholder="' + esc(t("memberNamePh")) + '"></div>' +
+    '<div class="field"><label for="mEmail">' + t("email") + '</label><input id="mEmail" type="email" placeholder="' + esc(t("memberEmailPh")) + '"></div>' +
+    '<div class="field"><label for="mFreqNew">' + t("emailFq") + "</label>" + freqSelectHTML("mFreqNew", "instant") + "</div>" +
+    '<button class="btn primary" id="mAdd">' + t("addMember") + "</button></div>" +
+    '<p class="team-note">' + t("teamNote") + "</p>" +
+    '<div class="team-add"><div class="field"><label>' + t("accountAccess") + "</label></div>" +
     accessRows +
-    '<div class="field" style="margin-top:14px"><label for="aEmail">Account email</label><input id="aEmail" type="email" placeholder="login email of the account"></div>' +
-    '<div class="field"><label for="aRoleNew">Access level</label><select id="aRoleNew">' +
-    '<option value="editor">Editor — full control</option>' +
-    '<option value="viewer">Viewer — read-only + can report</option></select></div>' +
-    '<button class="btn" id="aAdd">Set access</button>' +
-    '<p class="team-note">These rules apply to login accounts. Any account with no rule here is a viewer by default, so you only need entries for editors (or to pin someone explicitly to viewer). You cannot change your own access, and the last editor can never be removed.</p>' +
+    '<div class="field" style="margin-top:14px"><label for="aEmail">' + t("accountEmail") + '</label><input id="aEmail" type="email" placeholder="' + esc(t("accountEmailPh")) + '"></div>' +
+    '<div class="field"><label for="aRoleNew">' + t("accessLevel") + '</label><select id="aRoleNew">' +
+    '<option value="editor">' + t("roleEditor") + "</option>" +
+    '<option value="viewer">' + t("roleViewer") + "</option></select></div>" +
+    '<button class="btn" id="aAdd">' + t("setAccess") + "</button>" +
+    '<p class="team-note">' + t("accessNote") + "</p>" +
     "</div></div>" +
-    '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-left:auto">Close</button></div>';
+    '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-inline-start:auto">' + t("close") + "</button></div>";
 
   $("#scrim").classList.add("open");
   $("#drawer").classList.add("open");
@@ -1355,60 +1555,60 @@ async function openTeamDrawer() {
     sel.addEventListener("change", () => {
       store.saveMember({ email: m.email, name: m.name, notify_frequency: sel.value })
         .then(() => { m.notify_frequency = sel.value; toast(m.name + ": " + sel.options[sel.selectedIndex].text); })
-        .catch(err => toast("Save failed: " + err.message));
+        .catch(err => toast(t("saveFailed") + err.message));
     });
   });
   document.querySelectorAll("#drawer .rm").forEach(b =>
     b.addEventListener("click", () => {
       const email = b.dataset.email;
       const m = members.find(x => x.email === email);
-      if (!confirm("Remove " + (m ? m.name : email) + " from the team?")) return;
+      if (!confirm(t("removeMember").replace("{name}", m ? m.name : email))) return;
       store.removeMember(email)
         .then(() => {
           members = members.filter(x => x.email !== email);
-          toast("Member removed");
+          toast(t("memberRemoved"));
           openTeamDrawer();
         })
-        .catch(err => toast("Remove failed: " + err.message));
+        .catch(err => toast(t("removeFailed") + err.message));
     }));
   rolesList.forEach((r, i) => {
     const sel = document.getElementById("aRole-" + i);
     if (!sel || sel.disabled) return;
     sel.addEventListener("change", () => {
       store.saveRole(r.email, sel.value)
-        .then(() => toast(r.email + " is now " + sel.value))
-        .catch(err => { toast("Change failed: " + err.message); openTeamDrawer(); });
+        .then(() => toast(r.email + t("isNow") + sel.value))
+        .catch(err => { toast(t("changeFailed") + err.message); openTeamDrawer(); });
     });
   });
   document.querySelectorAll("#drawer [data-roleemail]").forEach(b =>
     b.addEventListener("click", () => {
       const email = b.dataset.roleemail;
-      if (!confirm("Remove the access rule for " + email + "? The account becomes a viewer.")) return;
+      if (!confirm(t("removeRule").replace("{email}", email))) return;
       store.removeRole(email)
-        .then(() => { toast("Access rule removed"); openTeamDrawer(); })
-        .catch(err => toast("Remove failed: " + err.message));
+        .then(() => { toast(t("ruleRemoved")); openTeamDrawer(); })
+        .catch(err => toast(t("removeFailed") + err.message));
     }));
   $("#aAdd").onclick = () => {
     const email = $("#aEmail").value.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast("Enter the account's login email"); return; }
-    if (email === myEmail) { toast("You cannot change your own access"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast(t("enterAccountEmail")); return; }
+    if (email === myEmail) { toast(t("ownAccess")); return; }
     store.saveRole(email, $("#aRoleNew").value)
-      .then(() => { toast(email + " set to " + $("#aRoleNew").value); openTeamDrawer(); })
-      .catch(err => toast("Save failed: " + err.message));
+      .then(() => { toast(email + t("setTo") + $("#aRoleNew").value); openTeamDrawer(); })
+      .catch(err => toast(t("saveFailed") + err.message));
   };
 
   $("#mAdd").onclick = () => {
     const name = $("#mName").value.trim();
     const email = $("#mEmail").value.trim().toLowerCase();
-    if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast("A name and a valid email are required"); return; }
+    if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast(t("needNameEmail")); return; }
     const m = { email, name, notify_frequency: $("#mFreqNew").value };
     store.saveMember(m)
       .then(() => {
         members = members.filter(x => x.email !== email).concat([m]).sort((a, b) => a.name.localeCompare(b.name));
-        toast(name + " added");
+        toast(name + t("memberAdded"));
         openTeamDrawer();
       })
-      .catch(err => toast("Add failed: " + err.message));
+      .catch(err => toast(t("addFailed") + err.message));
   };
 }
 
@@ -1416,16 +1616,16 @@ async function openTeamDrawer() {
 function openPasswordDrawer() {
   drawerId = null;
   $("#drawer").innerHTML =
-    '<div class="drawer-head"><h2>Change password</h2>' +
+    '<div class="drawer-head"><h2>' + t("pwH") + "</h2>" +
     '<button class="icon-btn" id="dClose" aria-label="Close">✕</button></div>' +
     '<div class="drawer-body">' +
-    '<p class="viewer-note" style="margin:0 0 16px">Changes the password for the account you are signed in as' +
+    '<p class="viewer-note" style="margin:0 0 16px">' + t("pwNote") +
     (session && session.email ? " (" + esc(session.email) + ")" : "") + ".</p>" +
-    '<div class="field"><label for="pw1">New password</label><input id="pw1" type="password" autocomplete="new-password" placeholder="At least 8 characters"></div>' +
-    '<div class="field"><label for="pw2">Repeat new password</label><input id="pw2" type="password" autocomplete="new-password"></div>' +
+    '<div class="field"><label for="pw1">' + t("pwNew") + '</label><input id="pw1" type="password" autocomplete="new-password" placeholder="' + esc(t("pwNewPh")) + '"></div>' +
+    '<div class="field"><label for="pw2">' + t("pwRepeat") + '</label><input id="pw2" type="password" autocomplete="new-password"></div>' +
     "</div>" +
-    '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-left:auto">Cancel</button>' +
-    '<button class="btn primary" id="pwSave">Change password</button></div>';
+    '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-inline-start:auto">' + t("cancel") + "</button>" +
+    '<button class="btn primary" id="pwSave">' + t("pwSave") + "</button></div>";
 
   $("#scrim").classList.add("open");
   $("#drawer").classList.add("open");
@@ -1434,13 +1634,13 @@ function openPasswordDrawer() {
   $("#pw1").focus();
   $("#pwSave").onclick = () => {
     const p1 = $("#pw1").value, p2 = $("#pw2").value;
-    if (p1.length < 8) { toast("Use at least 8 characters"); $("#pw1").focus(); return; }
-    if (p1 !== p2) { toast("The two passwords don't match"); $("#pw2").focus(); return; }
+    if (p1.length < 8) { toast(t("pwShort")); $("#pw1").focus(); return; }
+    if (p1 !== p2) { toast(t("pwMismatch")); $("#pw2").focus(); return; }
     const btn = $("#pwSave");
-    btn.disabled = true; btn.textContent = "Changing…";
+    btn.disabled = true; btn.textContent = t("pwSaving");
     store.changePassword(p1)
-      .then(() => { toast("Password changed"); closeDrawer(); })
-      .catch(err => { toast(err.message); btn.disabled = false; btn.textContent = "Change password"; });
+      .then(() => { toast(t("pwChanged")); closeDrawer(); })
+      .catch(err => { toast(err.message); btn.disabled = false; btn.textContent = t("pwSave"); });
   };
 }
 
@@ -1452,23 +1652,23 @@ function openReportsDrawer() {
     '<div class="report-item">' +
     '<p class="rtitle">' + esc(r.title) + "</p>" +
     (r.description ? '<p class="rdesc">' + esc(r.description) + "</p>" : "") +
-    '<div class="rmeta">' + esc(TYPES[r.kind] || r.kind) + " · reported by " + esc(r.reporter_name || "anonymous") +
+    '<div class="rmeta">' + esc(typeName(r.kind)) + " · " + t("repByWord") + " " + esc(r.reporter_name || t("repAnon")) +
     " · " + esc(fmtDateTime(r.created_at)) + "</div>" +
     (editor
       ? '<div class="report-actions">' +
-        '<button class="btn primary" data-accept="' + r.id + '">Accept as issue</button>' +
-        '<button class="btn" data-dismiss="' + r.id + '">Dismiss</button></div>'
+        '<button class="btn primary" data-accept="' + r.id + '">' + t("accept") + "</button>" +
+        '<button class="btn" data-dismiss="' + r.id + '">' + t("dismiss") + "</button></div>"
       : "") +
     "</div>"
-  ).join("") || '<p style="color:var(--faint);font-size:13px">No pending reports — the pool is clear.</p>';
+  ).join("") || '<p style="color:var(--faint);font-size:13px">' + t("repEmpty") + "</p>";
 
   $("#drawer").innerHTML =
-    '<div class="drawer-head"><h2>Reported issues from CMs</h2>' +
+    '<div class="drawer-head"><h2>' + t("repH") + "</h2>" +
     '<button class="icon-btn" id="dClose" aria-label="Close">✕</button></div>' +
     '<div class="drawer-body">' +
-    (editor ? '<p class="viewer-note" style="margin:0 0 14px">Accepting a report creates a real issue in the Backlog; dismissing removes it from the pool.</p>' : "") +
+    (editor ? '<p class="viewer-note" style="margin:0 0 14px">' + t("repEditorNote") + "</p>" : "") +
     items + "</div>" +
-    '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-left:auto">Close</button></div>';
+    '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-inline-start:auto">' + t("close") + "</button></div>";
 
   $("#scrim").classList.add("open");
   $("#drawer").classList.add("open");
@@ -1489,7 +1689,7 @@ function openReportsDrawer() {
       status: "backlog",
       assignee: "", assigneeEmail: "",
       dueDate: "", labels: ["cm-report"], prs: [], comments: [],
-      reporter: "CM: " + (r.reporter_name || "anonymous"),
+      reporter: "CM: " + (r.reporter_name || t("repAnon")),
       createdAt: now, updatedAt: now, updatedBy: myName(),
     };
     store.save(id, data)
@@ -1497,22 +1697,22 @@ function openReportsDrawer() {
       .then(() => {
         issues.push(Object.assign({ id }, data));
         reports = reports.filter(x => x.id !== r.id);
-        toast(id + " created from the report");
+        toast(id + t("acceptedToast"));
         render();
         openReportsDrawer();
       })
-      .catch(err => toast("Accept failed: " + err.message));
+      .catch(err => toast(t("acceptFailed") + err.message));
   }));
   document.querySelectorAll("#drawer [data-dismiss]").forEach(b => b.addEventListener("click", () => {
     const rid = b.dataset.dismiss;
     store.updateReport(rid, { status: "dismissed" })
       .then(() => {
         reports = reports.filter(x => String(x.id) !== rid);
-        toast("Report dismissed");
+        toast(t("dismissedToast"));
         render();
         openReportsDrawer();
       })
-      .catch(err => toast("Dismiss failed: " + err.message));
+      .catch(err => toast(t("dismissFailed") + err.message));
   }));
 }
 
@@ -1521,19 +1721,19 @@ function openReportForm() {
   let savedName = "";
   try { savedName = localStorage.getItem("sphub-tracker-cmname") || ""; } catch (e) {}
   $("#drawer").innerHTML =
-    '<div class="drawer-head"><h2>Report an issue</h2>' +
+    '<div class="drawer-head"><h2>' + t("rfH") + "</h2>" +
     '<button class="icon-btn" id="dClose" aria-label="Close">✕</button></div>' +
     '<div class="drawer-body">' +
-    '<p class="viewer-note" style="margin:0 0 16px">Your report goes to the SP tech team for review. If accepted, it becomes a tracked issue.</p>' +
-    '<div class="field"><label for="rName">Your name</label><input id="rName" value="' + esc(savedName) + '" placeholder="So the team knows who to ask"></div>' +
-    '<div class="field"><label for="rKind">Type</label><select id="rKind">' +
-    '<option value="bug">Bug — something is broken</option>' +
-    '<option value="enhancement">Enhancement — something could be better</option></select></div>' +
-    '<div class="field"><label for="rTitle">What needs to happen?</label><input id="rTitle" placeholder="One clear statement — e.g. Fix broken image upload in SPHUB news editor"></div>' +
-    '<div class="field"><label for="rDesc">Details</label><textarea id="rDesc" placeholder="Where it happens, what you expected, steps to reproduce…"></textarea></div>' +
+    '<p class="viewer-note" style="margin:0 0 16px">' + t("rfNote") + "</p>" +
+    '<div class="field"><label for="rName">' + t("rfName") + '</label><input id="rName" value="' + esc(savedName) + '" placeholder="' + esc(t("rfNamePh")) + '"></div>' +
+    '<div class="field"><label for="rKind">' + t("rfKind") + '</label><select id="rKind">' +
+    '<option value="bug">' + t("rfBug") + "</option>" +
+    '<option value="enhancement">' + t("rfEnh") + "</option></select></div>" +
+    '<div class="field"><label for="rTitle">' + t("rfTitle") + '</label><input id="rTitle" placeholder="' + esc(t("rfTitlePh")) + '"></div>' +
+    '<div class="field"><label for="rDesc">' + t("rfDesc") + '</label><textarea id="rDesc" placeholder="' + esc(t("rfDescPh")) + '"></textarea></div>' +
     "</div>" +
-    '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-left:auto">Cancel</button>' +
-    '<button class="btn primary" id="rSubmit">Submit report</button></div>';
+    '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-inline-start:auto">' + t("cancel") + "</button>" +
+    '<button class="btn primary" id="rSubmit">' + t("rfSubmit") + "</button></div>";
 
   $("#scrim").classList.add("open");
   $("#drawer").classList.add("open");
@@ -1543,7 +1743,7 @@ function openReportForm() {
   $("#rSubmit").onclick = () => {
     const title = $("#rTitle").value.trim();
     const name = $("#rName").value.trim();
-    if (!title) { toast("Describe what needs to happen"); $("#rTitle").focus(); return; }
+    if (!title) { toast(t("rfNeedTitle")); $("#rTitle").focus(); return; }
     try { localStorage.setItem("sphub-tracker-cmname", name); } catch (e) {}
     store.addReport({
       title,
@@ -1552,10 +1752,10 @@ function openReportForm() {
       kind: $("#rKind").value,
       status: "pending",
     }).then(() => {
-      toast("Report submitted — the team will review it");
+      toast(t("rfThanks"));
       closeDrawer();
       refresh(false);
-    }).catch(err => toast("Submit failed: " + err.message));
+    }).catch(err => toast(t("rfFailed") + err.message));
   };
 }
 
@@ -1563,6 +1763,8 @@ function openReportForm() {
 $("#btnNew").addEventListener("click", () => openDrawer(null));
 $("#btnReports").addEventListener("click", openReportsDrawer);
 $("#btnPw").addEventListener("click", openPasswordDrawer);
+$("#btnLang").addEventListener("click", toggleLang);
+$("#btnLangLogin").addEventListener("click", toggleLang);
 $("#btnReport").addEventListener("click", openReportForm);
 $("#btnTeam").addEventListener("click", openTeamDrawer);
 $("#scrim").addEventListener("click", closeDrawer);
@@ -1575,7 +1777,7 @@ $("#fPriority").addEventListener("change", e => { filters.priority = e.target.va
 $("#fAssignee").addEventListener("change", e => { filters.assignee = e.target.value; render(); });
 $("#fStatus").addEventListener("change", e => { filters.status = e.target.value; render(); });
 $("#fMine").addEventListener("click", () => {
-  if (!me) { toast("Pick who you are first (it appears when the team list loads)"); return; }
+  if (!me) { toast(t("pickFirst")); return; }
   filters.mine = !filters.mine;
   render();
 });
@@ -1598,6 +1800,7 @@ function setView(v) {
 }
 
 /* ---------------- boot ---------------- */
+applyLang();
 if (session) enterApp(); else showLogin();
 </script>
 </body>
