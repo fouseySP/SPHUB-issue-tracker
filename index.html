@@ -516,6 +516,7 @@
     <div class="stats" id="stats"></div>
     <div class="conn" id="conn"><span class="dot"></span><span id="connLabel">connecting…</span></div>
     <button class="btn-team" id="btnTeam">Team</button>
+    <button class="btn-team" id="btnPw">Password</button>
     <button class="btn-signout" id="btnSignout">Sign out</button>
   </header>
 
@@ -693,6 +694,36 @@ const store = {
       headers: { "Prefer": "return=minimal" },
       body: JSON.stringify(patch),
     });
+  },
+  loadRoles() {
+    return api("roles?select=email,role&order=email.asc");
+  },
+  saveRole(email, roleValue) {
+    return api("roles?on_conflict=email", {
+      method: "POST",
+      headers: { "Prefer": "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify([{ email, role: roleValue }]),
+    });
+  },
+  removeRole(email) {
+    return api("roles?email=eq." + encodeURIComponent(email), {
+      method: "DELETE",
+      headers: { "Prefer": "return=minimal" },
+    });
+  },
+  async changePassword(newPassword) {
+    const token = await ensureToken();
+    const res = await fetch(SUPA_URL + "/auth/v1/user", {
+      method: "PUT",
+      headers: {
+        "apikey": SUPA_KEY,
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password: newPassword }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error_description || data.msg || data.message || ("Password change failed (" + res.status + ")"));
   },
 };
 
@@ -1266,8 +1297,24 @@ function freqSelectHTML(id, current) {
     "</select>";
 }
 
-function openTeamDrawer() {
+async function openTeamDrawer() {
   drawerId = null;
+  let rolesList = [];
+  try { rolesList = await store.loadRoles(); } catch (e) { rolesList = []; }
+  const myEmail = (session && session.email || "").toLowerCase();
+
+  const accessRows = rolesList.map((r, i) => {
+    const self = r.email.toLowerCase() === myEmail;
+    return '<div class="member-row">' +
+      '<div class="member-info"><div class="em">' + esc(r.email) + (self ? ' <span style="color:var(--accent)">(you)</span>' : "") + "</div></div>" +
+      '<select id="aRole-' + i + '"' + (self ? " disabled title=\"You cannot change your own access\"" : "") + ">" +
+      '<option value="editor"' + (r.role === "editor" ? " selected" : "") + ">Editor</option>" +
+      '<option value="viewer"' + (r.role === "viewer" ? " selected" : "") + ">Viewer</option>" +
+      "</select>" +
+      (self ? "" : '<button class="rm" data-roleemail="' + esc(r.email) + '" aria-label="Remove access rule">✕</button>') +
+      "</div>";
+  }).join("") || '<p style="color:var(--faint);font-size:13px">No access rules yet.</p>';
+
   const rows = members.map((m, i) =>
     '<div class="member-row">' +
     '<span class="avatar">' + esc(initials(m.name)) + "</span>" +
@@ -1287,7 +1334,15 @@ function openTeamDrawer() {
     '<div class="field"><label for="mFreqNew">Email frequency</label>' + freqSelectHTML("mFreqNew", "instant") + "</div>" +
     '<button class="btn primary" id="mAdd">Add member</button></div>' +
     '<p class="team-note">Members appear in the assignee dropdown. When an issue is assigned to someone, they get an email at their chosen frequency (digests bundle multiple assignments into one email).</p>' +
-    "</div>" +
+    '<div class="team-add"><div class="field"><label>Account access</label></div>' +
+    accessRows +
+    '<div class="field" style="margin-top:14px"><label for="aEmail">Account email</label><input id="aEmail" type="email" placeholder="login email of the account"></div>' +
+    '<div class="field"><label for="aRoleNew">Access level</label><select id="aRoleNew">' +
+    '<option value="editor">Editor — full control</option>' +
+    '<option value="viewer">Viewer — read-only + can report</option></select></div>' +
+    '<button class="btn" id="aAdd">Set access</button>' +
+    '<p class="team-note">These rules apply to login accounts. Any account with no rule here is a viewer by default, so you only need entries for editors (or to pin someone explicitly to viewer). You cannot change your own access, and the last editor can never be removed.</p>' +
+    "</div></div>" +
     '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-left:auto">Close</button></div>';
 
   $("#scrim").classList.add("open");
@@ -1316,6 +1371,32 @@ function openTeamDrawer() {
         })
         .catch(err => toast("Remove failed: " + err.message));
     }));
+  rolesList.forEach((r, i) => {
+    const sel = document.getElementById("aRole-" + i);
+    if (!sel || sel.disabled) return;
+    sel.addEventListener("change", () => {
+      store.saveRole(r.email, sel.value)
+        .then(() => toast(r.email + " is now " + sel.value))
+        .catch(err => { toast("Change failed: " + err.message); openTeamDrawer(); });
+    });
+  });
+  document.querySelectorAll("#drawer [data-roleemail]").forEach(b =>
+    b.addEventListener("click", () => {
+      const email = b.dataset.roleemail;
+      if (!confirm("Remove the access rule for " + email + "? The account becomes a viewer.")) return;
+      store.removeRole(email)
+        .then(() => { toast("Access rule removed"); openTeamDrawer(); })
+        .catch(err => toast("Remove failed: " + err.message));
+    }));
+  $("#aAdd").onclick = () => {
+    const email = $("#aEmail").value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast("Enter the account's login email"); return; }
+    if (email === myEmail) { toast("You cannot change your own access"); return; }
+    store.saveRole(email, $("#aRoleNew").value)
+      .then(() => { toast(email + " set to " + $("#aRoleNew").value); openTeamDrawer(); })
+      .catch(err => toast("Save failed: " + err.message));
+  };
+
   $("#mAdd").onclick = () => {
     const name = $("#mName").value.trim();
     const email = $("#mEmail").value.trim().toLowerCase();
@@ -1328,6 +1409,38 @@ function openTeamDrawer() {
         openTeamDrawer();
       })
       .catch(err => toast("Add failed: " + err.message));
+  };
+}
+
+/* ---------------- change password ---------------- */
+function openPasswordDrawer() {
+  drawerId = null;
+  $("#drawer").innerHTML =
+    '<div class="drawer-head"><h2>Change password</h2>' +
+    '<button class="icon-btn" id="dClose" aria-label="Close">✕</button></div>' +
+    '<div class="drawer-body">' +
+    '<p class="viewer-note" style="margin:0 0 16px">Changes the password for the account you are signed in as' +
+    (session && session.email ? " (" + esc(session.email) + ")" : "") + ".</p>" +
+    '<div class="field"><label for="pw1">New password</label><input id="pw1" type="password" autocomplete="new-password" placeholder="At least 8 characters"></div>' +
+    '<div class="field"><label for="pw2">Repeat new password</label><input id="pw2" type="password" autocomplete="new-password"></div>' +
+    "</div>" +
+    '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-left:auto">Cancel</button>' +
+    '<button class="btn primary" id="pwSave">Change password</button></div>';
+
+  $("#scrim").classList.add("open");
+  $("#drawer").classList.add("open");
+  $("#dClose").onclick = closeDrawer;
+  $("#dCancel").onclick = closeDrawer;
+  $("#pw1").focus();
+  $("#pwSave").onclick = () => {
+    const p1 = $("#pw1").value, p2 = $("#pw2").value;
+    if (p1.length < 8) { toast("Use at least 8 characters"); $("#pw1").focus(); return; }
+    if (p1 !== p2) { toast("The two passwords don't match"); $("#pw2").focus(); return; }
+    const btn = $("#pwSave");
+    btn.disabled = true; btn.textContent = "Changing…";
+    store.changePassword(p1)
+      .then(() => { toast("Password changed"); closeDrawer(); })
+      .catch(err => { toast(err.message); btn.disabled = false; btn.textContent = "Change password"; });
   };
 }
 
@@ -1449,6 +1562,7 @@ function openReportForm() {
 /* ---------------- wiring ---------------- */
 $("#btnNew").addEventListener("click", () => openDrawer(null));
 $("#btnReports").addEventListener("click", openReportsDrawer);
+$("#btnPw").addEventListener("click", openPasswordDrawer);
 $("#btnReport").addEventListener("click", openReportForm);
 $("#btnTeam").addEventListener("click", openTeamDrawer);
 $("#scrim").addEventListener("click", closeDrawer);
