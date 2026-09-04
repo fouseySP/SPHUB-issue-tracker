@@ -104,6 +104,7 @@
   }
 
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body { margin: 0; height: 100%; }
   body {
     background: var(--bg);
@@ -231,6 +232,21 @@
     font: 500 11px "JetBrains Mono", monospace; color: var(--muted);
   }
   .btn-mine.on .cnt { background: var(--accent); color: var(--accent-ink); }
+  .btn-mine .cnt.alert { background: var(--high-soft); color: var(--high); }
+
+  .report-item {
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 10px; background: var(--surface-2);
+  }
+  .report-item .rtitle { font-weight: 600; margin: 0 0 4px; overflow-wrap: anywhere; }
+  .report-item .rdesc { color: var(--muted); font-size: 13px; margin: 0 0 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .report-item .rmeta { font-size: 11.5px; color: var(--faint); font-family: "JetBrains Mono", monospace; margin-bottom: 10px; }
+  .report-actions { display: flex; gap: 8px; }
+  .report-actions .btn { padding: 6px 12px; font-size: 13px; }
+  .viewer-note {
+    font-size: 12px; color: var(--muted); background: var(--accent-soft);
+    border-radius: 8px; padding: 6px 12px;
+  }
 
   /* ---------- board ---------- */
   main { flex: 1; overflow: auto; }
@@ -533,7 +549,9 @@
       <button id="viewBoard" class="on" role="tab" aria-selected="true">Board</button>
       <button id="viewTable" role="tab" aria-selected="false">Table</button>
     </div>
+    <button class="btn-mine" id="btnReports">CM reports <span class="cnt alert" id="repCount">0</span></button>
     <button class="btn-new" id="btnNew">+ New issue</button>
+    <button class="btn-new" id="btnReport" hidden>Report an issue</button>
   </div>
 
   <main id="main"></main>
@@ -656,6 +674,26 @@ const store = {
       headers: { "Prefer": "return=minimal" },
     });
   },
+  myRole() {
+    return api("rpc/my_role", { method: "POST", body: "{}" });
+  },
+  loadReports() {
+    return api("reports?status=eq.pending&select=*&order=created_at.asc");
+  },
+  addReport(r) {
+    return api("reports", {
+      method: "POST",
+      headers: { "Prefer": "return=minimal" },
+      body: JSON.stringify([r]),
+    });
+  },
+  updateReport(id, patch) {
+    return api("reports?id=eq." + encodeURIComponent(id), {
+      method: "PATCH",
+      headers: { "Prefer": "return=minimal" },
+      body: JSON.stringify(patch),
+    });
+  },
 };
 
 /* ---------------- auth flow ---------------- */
@@ -711,9 +749,10 @@ function setConn(mode, label) {
 
 async function refresh(showErrors) {
   try {
-    const [iss, mem] = await Promise.all([store.loadAll(), store.loadMembers()]);
+    const [iss, mem, rep] = await Promise.all([store.loadAll(), store.loadMembers(), store.loadReports()]);
     issues = iss;
     members = mem;
+    reports = rep;
     setConn("live", "team sync on");
     render();
     ensureIdentity();
@@ -737,8 +776,25 @@ document.addEventListener("visibilitychange", () => {
 function enterApp() {
   showApp();
   setConn("", "loading…");
-  refresh(true);
+  fetchRole().then(() => refresh(true));
   startPolling();
+}
+
+/* ---------------- role ---------------- */
+let role = "viewer"; // until the server says otherwise
+
+async function fetchRole() {
+  try { role = (await store.myRole()) === "editor" ? "editor" : "viewer"; }
+  catch (e) { role = "viewer"; }
+  applyRole();
+}
+
+function applyRole() {
+  const editor = role === "editor";
+  $("#btnNew").hidden = !editor;
+  $("#btnTeam").hidden = !editor;
+  $("#btnReport").hidden = editor;
+  $("#fMine").hidden = !editor;
 }
 
 /* ---------------- identity ---------------- */
@@ -749,6 +805,7 @@ try { me = JSON.parse(localStorage.getItem("sphub-tracker-me") || "null"); } cat
 function myName() { return me ? me.name : "Unknown"; }
 
 function ensureIdentity() {
+  if (role !== "editor") { $("#whoWrap").hidden = true; return; }
   if (!members.length) return; // team empty — nothing to pick yet
   if (me && members.some(m => m.email === me.email)) { $("#whoWrap").hidden = true; return; }
   const sel = $("#whoSelect");
@@ -805,6 +862,7 @@ const initials = name => (name || "?").trim().split(/\s+/).map(w => w[0]).slice(
 const isOverdue = it => it.dueDate && it.status !== "done" && it.dueDate < todayISO();
 
 let issues = [];
+let reports = [];
 
 function nextId() {
   let max = 0;
@@ -868,6 +926,7 @@ function render() {
   renderAssigneeFilter();
   const openMine = issues.filter(it => isMine(it) && it.status !== "done").length;
   $("#mineCount").textContent = openMine;
+  $("#repCount").textContent = reports.length;
   $("#fMine").classList.toggle("on", filters.mine);
   $("#fMine").setAttribute("aria-pressed", String(filters.mine));
   $("#clearFilters").hidden = !(filters.q || filters.type || filters.priority || filters.assignee || filters.status || filters.mine);
@@ -909,7 +968,7 @@ function cardHTML(it) {
   const desc = it.description
     ? '<p class="card-desc">' + esc(it.description) + "</p>"
     : "";
-  return '<article class="card p-' + esc(it.priority) + '" draggable="true" data-id="' + esc(it.id) + '" tabindex="0" ' +
+  return '<article class="card p-' + esc(it.priority) + '" draggable="' + (role === "editor" ? "true" : "false") + '" data-id="' + esc(it.id) + '" tabindex="0" ' +
     'aria-label="' + esc(it.id + " " + it.title) + '">' +
     '<div class="card-top">' +
     '<span class="chip t-' + esc(it.type) + '">' + esc(TYPES[it.type] || it.type) + "</span>" +
@@ -968,6 +1027,7 @@ function wireBoard() {
 }
 
 function moveIssue(id, status) {
+  if (role !== "editor") { toast("View-only account — you can report issues, not change them"); return; }
   const it = issues.find(i => i.id === id);
   if (!it || it.status === status) return;
   it.status = status;
@@ -1092,6 +1152,17 @@ function openDrawer(id) {
   $("#scrim").classList.add("open");
   $("#drawer").classList.add("open");
   $("#dTitle").focus();
+
+  if (role !== "editor") {
+    document.querySelectorAll("#drawer .drawer-body input, #drawer .drawer-body select, #drawer .drawer-body textarea")
+      .forEach(el => { el.disabled = true; });
+    ["dPrAdd", "dSave", "dDelete", "dCommentAdd"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.hidden = true;
+    });
+    document.querySelectorAll("#dPrList button").forEach(b => { b.hidden = true; });
+    $("#dCancel").textContent = "Close";
+  }
 
   $("#dClose").onclick = closeDrawer;
   $("#dCancel").onclick = closeDrawer;
@@ -1260,8 +1331,125 @@ function openTeamDrawer() {
   };
 }
 
+/* ---------------- CM reports ---------------- */
+function openReportsDrawer() {
+  drawerId = null;
+  const editor = role === "editor";
+  const items = reports.map(r =>
+    '<div class="report-item">' +
+    '<p class="rtitle">' + esc(r.title) + "</p>" +
+    (r.description ? '<p class="rdesc">' + esc(r.description) + "</p>" : "") +
+    '<div class="rmeta">' + esc(TYPES[r.kind] || r.kind) + " · reported by " + esc(r.reporter_name || "anonymous") +
+    " · " + esc(fmtDateTime(r.created_at)) + "</div>" +
+    (editor
+      ? '<div class="report-actions">' +
+        '<button class="btn primary" data-accept="' + r.id + '">Accept as issue</button>' +
+        '<button class="btn" data-dismiss="' + r.id + '">Dismiss</button></div>'
+      : "") +
+    "</div>"
+  ).join("") || '<p style="color:var(--faint);font-size:13px">No pending reports — the pool is clear.</p>';
+
+  $("#drawer").innerHTML =
+    '<div class="drawer-head"><h2>Reported issues from CMs</h2>' +
+    '<button class="icon-btn" id="dClose" aria-label="Close">✕</button></div>' +
+    '<div class="drawer-body">' +
+    (editor ? '<p class="viewer-note" style="margin:0 0 14px">Accepting a report creates a real issue in the Backlog; dismissing removes it from the pool.</p>' : "") +
+    items + "</div>" +
+    '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-left:auto">Close</button></div>';
+
+  $("#scrim").classList.add("open");
+  $("#drawer").classList.add("open");
+  $("#dClose").onclick = closeDrawer;
+  $("#dCancel").onclick = closeDrawer;
+
+  document.querySelectorAll("#drawer [data-accept]").forEach(b => b.addEventListener("click", () => {
+    const r = reports.find(x => String(x.id) === b.dataset.accept);
+    if (!r) return;
+    const now = new Date().toISOString();
+    const id = nextId();
+    const data = {
+      title: r.title,
+      description: r.description || "",
+      type: r.kind === "enhancement" ? "enhancement" : "bug",
+      priority: "medium",
+      effort: "",
+      status: "backlog",
+      assignee: "", assigneeEmail: "",
+      dueDate: "", labels: ["cm-report"], prs: [], comments: [],
+      reporter: "CM: " + (r.reporter_name || "anonymous"),
+      createdAt: now, updatedAt: now, updatedBy: myName(),
+    };
+    store.save(id, data)
+      .then(() => store.updateReport(r.id, { status: "accepted" }))
+      .then(() => {
+        issues.push(Object.assign({ id }, data));
+        reports = reports.filter(x => x.id !== r.id);
+        toast(id + " created from the report");
+        render();
+        openReportsDrawer();
+      })
+      .catch(err => toast("Accept failed: " + err.message));
+  }));
+  document.querySelectorAll("#drawer [data-dismiss]").forEach(b => b.addEventListener("click", () => {
+    const rid = b.dataset.dismiss;
+    store.updateReport(rid, { status: "dismissed" })
+      .then(() => {
+        reports = reports.filter(x => String(x.id) !== rid);
+        toast("Report dismissed");
+        render();
+        openReportsDrawer();
+      })
+      .catch(err => toast("Dismiss failed: " + err.message));
+  }));
+}
+
+function openReportForm() {
+  drawerId = null;
+  let savedName = "";
+  try { savedName = localStorage.getItem("sphub-tracker-cmname") || ""; } catch (e) {}
+  $("#drawer").innerHTML =
+    '<div class="drawer-head"><h2>Report an issue</h2>' +
+    '<button class="icon-btn" id="dClose" aria-label="Close">✕</button></div>' +
+    '<div class="drawer-body">' +
+    '<p class="viewer-note" style="margin:0 0 16px">Your report goes to the SP tech team for review. If accepted, it becomes a tracked issue.</p>' +
+    '<div class="field"><label for="rName">Your name</label><input id="rName" value="' + esc(savedName) + '" placeholder="So the team knows who to ask"></div>' +
+    '<div class="field"><label for="rKind">Type</label><select id="rKind">' +
+    '<option value="bug">Bug — something is broken</option>' +
+    '<option value="enhancement">Enhancement — something could be better</option></select></div>' +
+    '<div class="field"><label for="rTitle">What needs to happen?</label><input id="rTitle" placeholder="One clear statement — e.g. Fix broken image upload in SPHUB news editor"></div>' +
+    '<div class="field"><label for="rDesc">Details</label><textarea id="rDesc" placeholder="Where it happens, what you expected, steps to reproduce…"></textarea></div>' +
+    "</div>" +
+    '<div class="drawer-foot"><button class="btn" id="dCancel" style="margin-left:auto">Cancel</button>' +
+    '<button class="btn primary" id="rSubmit">Submit report</button></div>';
+
+  $("#scrim").classList.add("open");
+  $("#drawer").classList.add("open");
+  $("#dClose").onclick = closeDrawer;
+  $("#dCancel").onclick = closeDrawer;
+  $("#rName").focus();
+  $("#rSubmit").onclick = () => {
+    const title = $("#rTitle").value.trim();
+    const name = $("#rName").value.trim();
+    if (!title) { toast("Describe what needs to happen"); $("#rTitle").focus(); return; }
+    try { localStorage.setItem("sphub-tracker-cmname", name); } catch (e) {}
+    store.addReport({
+      title,
+      description: $("#rDesc").value.trim(),
+      reporter_name: name,
+      kind: $("#rKind").value,
+      status: "pending",
+    }).then(() => {
+      toast("Report submitted — the team will review it");
+      closeDrawer();
+      refresh(false);
+    }).catch(err => toast("Submit failed: " + err.message));
+  };
+}
+
 /* ---------------- wiring ---------------- */
 $("#btnNew").addEventListener("click", () => openDrawer(null));
+$("#btnReports").addEventListener("click", openReportsDrawer);
+$("#btnReport").addEventListener("click", openReportForm);
 $("#btnTeam").addEventListener("click", openTeamDrawer);
 $("#scrim").addEventListener("click", closeDrawer);
 document.addEventListener("keydown", e => {
